@@ -6,7 +6,7 @@ from tkinter import ttk
 
 root = Tk()
 root.title('Ner SportsBook Calculator')
-root.geometry("800x1200")
+root.geometry("600x1300")
 
 def webScrapeTeamStatsUrl(StatUrl):
 
@@ -89,6 +89,7 @@ def webScrapeStreakStatsUrl(StatUrl):
 
     return df_subset
 
+
 def homeTeamSelected(e):
 
     global parsedHomeStats
@@ -107,7 +108,6 @@ def homeTeamSelected(e):
     global parsedHomeStreakStats
     homeStreakFilter = homeStreakStats['Team'] == homeTeam
     parsedHomeStreakStats = homeStreakStats[homePkFilter]
-
 
 def awayTeamSelected(e):
 
@@ -312,7 +312,6 @@ def awayTeamDisplay():
     lsLabelAway.grid(row = 14, column = 3, padx = 10, pady = 10)
 
 
-
 def populateHomeGoalieStats():
 
     homeGp = IntVar()
@@ -491,6 +490,58 @@ def populateAwayTeamStats():
     lossAway = Label(teamStatsFrame, textvariable = awayLosses)
     lossAway.grid(row = 14, column = 4, padx = 10, pady = 10)
     
+def calculateStatistics():
+
+    #home goalie stats
+    #home goalie / 2.5 since the number of goalies is significantly higher than number of teams
+    numOfHomeGoalies = len(homeGoalieStats)
+    homeGoalieGaaCalc = (((numOfHomeGoalies - parsedHomeGoalieStats.iloc[0]['GAA Rank']) * 0.10) / 2.5)
+    homeGoalieSvCalc = (((numOfHomeGoalies - parsedHomeGoalieStats.iloc[0]['SV% Rank']) * 0.10) / 2.5)
+
+    #home strength calcs
+    numOfHomeTeams = len(homeTeamStats)
+    homeOffensiveStrengthCalc = ((numOfHomeTeams - parsedHomeStats.iloc[0]['OffensiveRank']) * 0.30)
+    homeDefensiveStrengthCalc = ((numOfHomeTeams - parsedHomeStats.iloc[0]['DefensiveRank']) * 0.20)
+    homePowerPlayStrengthCalc = ((numOfHomeTeams - parsedHomePpStats.iloc[0]['PP Rank']) * 0.15)
+    homePentalyKillStrengthCalc = ((numOfHomeTeams - parsedAwayPkStats.iloc[0]['PK Rank']) * 0.15)
+
+    #away goalie stats
+    #away goalie / 2.5 since the number of goalies is significantly higher than number of teams
+    numAwayGoalies = len(awayGoalieStats)
+    awayGoalieGaaCalc = (((numAwayGoalies - parsedAwayGoalieStats.iloc[0]['GAA Rank']) * 0.10) / 2.5)
+    awayGoalieSvCalc = (((numAwayGoalies - parsedAwayGoalieStats.iloc[0]['SV% Rank']) * 0.10) / 2.5)
+
+    #away offensive strength
+    numOfAwayTeams = len(awayTeamStats)
+    awayOffensiveStrengthCalc = ((numOfAwayTeams - parsedAwayStats.iloc[0]['OffensiveRank']) * 0.30)
+    awayDefensiveStrengthCalc = ((numOfAwayTeams - parsedAwayStats.iloc[0]['DefensiveRank']) * 0.20)
+    awayPowerPlayStrengthCalc = ((numOfAwayTeams - parsedAwayPpStats.iloc[0]['PP Rank']) * 0.15)
+    awayPentalyKillStrengthCalc = ((numOfAwayTeams - parsedAwayPkStats.iloc[0]['PK Rank']) * 0.15)
+
+    #calculate totals
+    homeTotalCount = homeGoalieGaaCalc + homeGoalieSvCalc + homeOffensiveStrengthCalc + homeDefensiveStrengthCalc + homePowerPlayStrengthCalc + homePentalyKillStrengthCalc
+
+    awayTotalCount = awayGoalieGaaCalc + awayGoalieSvCalc + awayOffensiveStrengthCalc + awayDefensiveStrengthCalc + awayPowerPlayStrengthCalc + awayPentalyKillStrengthCalc
+
+    totalCount = homeTotalCount + awayTotalCount
+
+    homePercentage = ((homeTotalCount / totalCount) * 100)
+    awayPercentage = ((awayTotalCount / totalCount) * 100)
+
+    #display calculations
+    finalHomePercentage = StringVar()
+    finalHomePercentage.set("{:.2f}".format(homePercentage) + " %")
+    homeTeam = Label(totalCalcFrame, text = parsedHomeStats.iloc[0]['Team'])
+    homeTeam.grid(row = 0, column = 0, padx = 10, pady = 10)
+    homePercentageLabel = Label(totalCalcFrame, textvariable = finalHomePercentage)
+    homePercentageLabel.grid(row = 1, column = 0, padx = 10, pady = 10)
+
+    finalAwayPercentage = StringVar()
+    finalAwayPercentage.set("{:.2f}".format(awayPercentage) + " %")
+    awayTeam = Label(totalCalcFrame, text = parsedAwayStats.iloc[0]['Team'])
+    awayTeam.grid(row = 0, column = 1, padx = 10, pady = 10)
+    awayPercentageLabel = Label(totalCalcFrame, textvariable = finalAwayPercentage)
+    awayPercentageLabel.grid(row = 1, column = 1, padx = 10, pady = 10)
 
 
 def computeStats():
@@ -499,7 +550,7 @@ def computeStats():
     populateAwayGoalieStats()
     populateHomeTeamStats()
     populateAwayTeamStats()
-    
+    calculateStatistics()
 
 
 #web scrape links
@@ -539,11 +590,16 @@ goalieStatsFrame.pack(padx = 5, pady = 5)
 teamStatsFrame = LabelFrame(root, padx = 10, pady = 10)
 teamStatsFrame.pack(padx = 5, pady = 5)
 
+#calculation frame
+totalCalcFrame = LabelFrame(root, padx = 10, pady = 10)
+totalCalcFrame.pack(padx = 5, pady = 5)
+
 
 homeGoalieDisplay()
 awayGoalieDisplay()
 homeTeamDisplay()
 awayTeamDisplay()
+
 
 #home team selection label
 homeTeamLabel = ttk.Label(selectionFrame, text = 'Select Home Team')
@@ -584,8 +640,6 @@ awayGoalieValues = list(awayGoalieStats['Player'].unique())
 awayGoalieCombo = ttk.Combobox(selectionFrame, value = awayGoalieValues)
 awayGoalieCombo.grid(row = 3, column = 1)
 awayGoalieCombo.bind("<<ComboboxSelected>>", awayGoalieSelected)
-
-
 
 
 button = ttk.Button(root, text = 'Run', command=lambda : computeStats())
