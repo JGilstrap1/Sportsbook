@@ -374,8 +374,8 @@ def populateHomeTeamStats():
     homePPR = IntVar()
     homePK = IntVar()
     homePKR = IntVar()
-    homeWins = IntVar()
-    homeLosses = IntVar()
+    homeStreakWins = IntVar()
+    homeStreakLosses = IntVar()
 
     homeWins.set(parsedHomeStats.iloc[0]['W'])
     homeLoss.set(parsedHomeStats.iloc[0]['L'])
@@ -390,8 +390,8 @@ def populateHomeTeamStats():
     homePPR.set(parsedHomePpStats.iloc[0]['PP Rank'])
     homePK.set(parsedHomePkStats.iloc[0]['PK'])
     homePKR.set(parsedHomePkStats.iloc[0]['PK Rank'])
-    homeWins.set(parsedHomeStreakStats.iloc[0]['Wins'])
-    homeLosses.set(parsedHomeStreakStats.iloc[0]['Losses'])
+    homeStreakWins.set(parsedHomeStreakStats.iloc[0]['Wins'])
+    homeStreakLosses.set(parsedHomeStreakStats.iloc[0]['Losses'])
 
 
     winsHome = Label(teamStatsFrame, textvariable = homeWins)
@@ -420,10 +420,10 @@ def populateHomeTeamStats():
     PkHome.grid(row = 11, column = 1, padx = 10, pady = 10)
     PkrHome = Label(teamStatsFrame, textvariable = homePKR)
     PkrHome.grid(row = 12, column = 1, padx = 10, pady = 10)
-    winsHome = Label(teamStatsFrame, textvariable = homeWins)
-    winsHome.grid(row = 13, column = 1, padx = 10, pady = 10)
-    lossHome = Label(teamStatsFrame, textvariable = homeLosses)
-    lossHome.grid(row = 14, column = 1, padx = 10, pady = 10)
+    winsStreakHome = Label(teamStatsFrame, textvariable = homeStreakWins)
+    winsStreakHome.grid(row = 13, column = 1, padx = 10, pady = 10)
+    lossStreakHome = Label(teamStatsFrame, textvariable = homeStreakLosses)
+    lossStreakHome.grid(row = 14, column = 1, padx = 10, pady = 10)
 
 def populateAwayTeamStats():
 
@@ -440,8 +440,8 @@ def populateAwayTeamStats():
     awayPPR = IntVar()
     awayPK = IntVar()
     awayPKR = IntVar()
-    awayWins = IntVar()
-    awayLosses = IntVar()
+    awayStreakWins = IntVar()
+    awayStreakLosses = IntVar()
 
     awayWins.set(parsedAwayStats.iloc[0]['W'])
     awayLoss.set(parsedAwayStats.iloc[0]['L'])
@@ -456,8 +456,8 @@ def populateAwayTeamStats():
     awayPPR.set(parsedAwayPpStats.iloc[0]['PP Rank'])
     awayPK.set(parsedAwayPkStats.iloc[0]['PK'])
     awayPKR.set(parsedAwayPkStats.iloc[0]['PK Rank'])
-    awayWins.set(parsedAwayStreakStats.iloc[0]['Wins'])
-    awayLosses.set(parsedAwayStreakStats.iloc[0]['Losses'])
+    awayStreakWins.set(parsedAwayStreakStats.iloc[0]['Wins'])
+    awayStreakLosses.set(parsedAwayStreakStats.iloc[0]['Losses'])
 
     winsAway = Label(teamStatsFrame, textvariable = awayWins)
     winsAway.grid(row = 0, column = 4, padx = 10, pady = 10)
@@ -485,10 +485,10 @@ def populateAwayTeamStats():
     PkAway.grid(row = 11, column = 4, padx = 10, pady = 10)
     PkrAway = Label(teamStatsFrame, textvariable = awayPKR)
     PkrAway.grid(row = 12, column = 4, padx = 10, pady = 10)
-    winsAway = Label(teamStatsFrame, textvariable = awayWins)
-    winsAway.grid(row = 13, column = 4, padx = 10, pady = 10)
-    lossAway = Label(teamStatsFrame, textvariable = awayLosses)
-    lossAway.grid(row = 14, column = 4, padx = 10, pady = 10)
+    winsStreakAway = Label(teamStatsFrame, textvariable = awayStreakWins)
+    winsStreakAway.grid(row = 13, column = 4, padx = 10, pady = 10)
+    lossStreakAway = Label(teamStatsFrame, textvariable = awayStreakLosses)
+    lossStreakAway.grid(row = 14, column = 4, padx = 10, pady = 10)
     
 def calculateStatistics():
 
