@@ -6,7 +6,8 @@ from tkinter import ttk
 import statistics 
 
 root = Tk()
-root.title('Ner SportsBook Calculator')
+root.title('Ner NHL Calculator')
+root.iconbitmap('/Users/jimbo/Documents/Sportsbook/zam.ico')
 root.geometry("600x1000")
 
 def webScrapeTeamStatsUrl(StatUrl):
@@ -544,15 +545,65 @@ def calculateStatistics():
     awayPercentageLabel = Label(totalCalcFrame, textvariable = finalAwayPercentage)
     awayPercentageLabel.grid(row = 1, column = 1, padx = 10, pady = 10)
 
-def calculateOverUnder():
+def calculateGoalsScored():
 
-    homeMethodOne = float(parsedHomeStats.iloc[0]['GF/GP'])
-    awayMethodOne = float(parsedAwayStats.iloc[0]['GF/GP'])
-    methodOne = statistics.mean([homeMethodOne, awayMethodOne])
+    #calculate score method one
+    homeMethodOne = statistics.mean([float(parsedHomeStats.iloc[0]['GF/GP']), float(parsedAwayStats.iloc[0]['GA/GP'])]) 
+    awayMethodOne = statistics.mean([float(parsedAwayStats.iloc[0]['GF/GP']), float(parsedHomeStats.iloc[0]['GA/GP'])])
+
+    #calculate score method two
+    homeExpectedShots =  statistics.mean([float(parsedHomeStats.iloc[0]['SF/GP']), float(parsedAwayStats.iloc[0]['SA/GP'])])
+    awayExpectedShots =  statistics.mean([float(parsedAwayStats.iloc[0]['SF/GP']), float(parsedHomeStats.iloc[0]['SA/GP'])]) 
+    homeMethodTwo = (1.0 - float(parsedAwayGoalieStats.iloc[0]['SV%'])) * homeExpectedShots
+    awayMethodTwo = (1.0 - float(parsedHomeGoalieStats.iloc[0]['SV%'])) * awayExpectedShots
+
+    #calculate score method three
+    homeAvgShotsPerGoal = (float(parsedHomeStats.iloc[0]['SF/GP']) / float(parsedHomeStats.iloc[0]['GF/GP']))
+    awayAvgShotsPerGoal = (float(parsedAwayStats.iloc[0]['SF/GP']) / float(parsedAwayStats.iloc[0]['GF/GP']))
+    homeMethodThree = (homeExpectedShots / homeAvgShotsPerGoal)
+    awayMethodThree = (awayExpectedShots / awayAvgShotsPerGoal)
+
+    #method four
+    homeMethodfour = float(parsedAwayStats.iloc[0]['GA/GP'])
+    awayMethodFour = float(parsedHomeStats.iloc[0]['GA/GP'])
+
+    #method five
+    homeMethodFive = float(parsedHomeStats.iloc[0]['GF/GP'])
+    awayMethodFive = float(parsedAwayStats.iloc[0]['GF/GP'])
+
+    homeAverage = statistics.mean([homeMethodOne, homeMethodTwo, homeMethodThree, homeMethodfour, homeMethodFive])
+    awayAverage = statistics.mean([awayMethodOne, awayMethodTwo, awayMethodThree, awayMethodFour, awayMethodFive])
+
+    homeScore = homeAverage
+    awayScore = awayAverage
+
+    if parsedAwayStats.iloc[0]['DefensiveRank'] < len(awayTeamStats):
+
+        homeScore = ((1 - (((len(awayTeamStats) / 2) - parsedAwayStats.iloc[0]['DefensiveRank']) / 100)) * homeAverage)
+
+    elif parsedAwayStats.iloc[0]['DefensiveRank'] > len(awayTeamStats):
+
+        homeScore = ((1 + (parsedAwayStats.iloc[0]['DefensiveRank'] - (len(awayTeamStats) / 2) / 100)) * homeAverage)
 
 
+    if parsedHomeStats.iloc[0]['DefensiveRank'] < len(homeTeamStats):
 
-   
+        awayScore = ((1 - (((len(homeTeamStats) / 2) - parsedHomeStats.iloc[0]['DefensiveRank']) / 100)) * awayAverage)
+
+    elif parsedHomeStats.iloc[0]['DefensiveRank'] > len(HomeTeamStats):
+
+        awayScore = ((1 + (parsedHomeStats.iloc[0]['DefensiveRank'] - (len(homeTeamStats) / 2) / 100)) * awayAverage)
+
+    #display final calculated goals
+    finalHomeGoals = StringVar()
+    finalHomeGoals.set("Goals: ""{:.2f}".format(homeScore))
+    homeGoalsLabel = Label(totalCalcFrame, textvariable = finalHomeGoals)
+    homeGoalsLabel.grid(row = 2, column = 0, padx = 10, pady = 10)
+
+    finalAwayGoals = StringVar()
+    finalAwayGoals.set("Goals: ""{:.2f}".format(awayScore))
+    homeGoalsLabel = Label(totalCalcFrame, textvariable = finalAwayGoals)
+    homeGoalsLabel.grid(row = 2, column = 1, padx = 10, pady = 10)
 
 
 def computeStats():
@@ -562,7 +613,7 @@ def computeStats():
     populateHomeTeamStats()
     populateAwayTeamStats()
     calculateStatistics()
-    calculateOverUnder()
+    calculateGoalsScored()
 
 
 #web scrape links
@@ -619,7 +670,7 @@ teamStatsFrame = LabelFrame(myFrame, padx = 10, pady = 10)
 teamStatsFrame.pack(padx = 75, pady = 5)
 
 #calculation frame
-totalCalcFrame = LabelFrame(myFrame, padx = 10, pady = 10, width = 250, height = 100)
+totalCalcFrame = LabelFrame(myFrame, padx = 10, pady = 10, width = 250, height = 150)
 totalCalcFrame.pack(padx = 75, pady = 5)
 
 
