@@ -3,10 +3,11 @@ from pandas import DataFrame
 import numpy as np
 from tkinter import *
 from tkinter import ttk
+import statistics 
 
 root = Tk()
 root.title('Ner SportsBook Calculator')
-root.geometry("600x1300")
+root.geometry("600x1000")
 
 def webScrapeTeamStatsUrl(StatUrl):
 
@@ -543,6 +544,16 @@ def calculateStatistics():
     awayPercentageLabel = Label(totalCalcFrame, textvariable = finalAwayPercentage)
     awayPercentageLabel.grid(row = 1, column = 1, padx = 10, pady = 10)
 
+def calculateOverUnder():
+
+    homeMethodOne = float(parsedHomeStats.iloc[0]['GF/GP'])
+    awayMethodOne = float(parsedAwayStats.iloc[0]['GF/GP'])
+    methodOne = statistics.mean([homeMethodOne, awayMethodOne])
+
+
+
+   
+
 
 def computeStats():
 
@@ -551,6 +562,7 @@ def computeStats():
     populateHomeTeamStats()
     populateAwayTeamStats()
     calculateStatistics()
+    calculateOverUnder()
 
 
 #web scrape links
@@ -577,22 +589,38 @@ awayPenaltyKillStats = webScrapePenaltyKillStatsUrl(awayPenaltyKillStatsUrl)
 homeStreakStats = webScrapeStreakStatsUrl(streakStatsUrl)
 awayStreakStats = webScrapeStreakStatsUrl(streakStatsUrl)
 
+mainFrame = LabelFrame(root)
+mainFrame.pack(fill = BOTH, expand = 1)
+
+myCanvas = Canvas(mainFrame)
+myCanvas.pack(side = LEFT, fill = BOTH, expand = 1)
+
+yscrollbar = ttk.Scrollbar(mainFrame, orient = VERTICAL, command = myCanvas.yview)
+yscrollbar.pack(side = RIGHT, fill = Y)
+
+myCanvas.configure(yscrollcommand = yscrollbar.set)
+myCanvas.bind('<Configure>', lambda e: myCanvas.configure(scrollregion = myCanvas.bbox('all')))
+
+myFrame = Frame(myCanvas)
+myCanvas.create_window((0,0), window = myFrame, anchor = "nw")
+
+
 
 #create user input frames
-selectionFrame = LabelFrame(root, padx = 10, pady = 10)
-selectionFrame.pack(padx = 5, pady = 5)
+selectionFrame = LabelFrame(myFrame, padx = 10, pady = 10)
+selectionFrame.pack(padx = 75, pady = 5)
 
 #goalie statistics frame
-goalieStatsFrame = LabelFrame(root, padx = 10, pady = 10)
-goalieStatsFrame.pack(padx = 5, pady = 5)
+goalieStatsFrame = LabelFrame(myFrame, padx = 10, pady = 10)
+goalieStatsFrame.pack(padx = 75, pady = 5)
 
 #team statistics frame
-teamStatsFrame = LabelFrame(root, padx = 10, pady = 10)
-teamStatsFrame.pack(padx = 5, pady = 5)
+teamStatsFrame = LabelFrame(myFrame, padx = 10, pady = 10)
+teamStatsFrame.pack(padx = 75, pady = 5)
 
 #calculation frame
-totalCalcFrame = LabelFrame(root, padx = 10, pady = 10)
-totalCalcFrame.pack(padx = 5, pady = 5)
+totalCalcFrame = LabelFrame(myFrame, padx = 10, pady = 10, width = 250, height = 100)
+totalCalcFrame.pack(padx = 75, pady = 5)
 
 
 homeGoalieDisplay()
@@ -642,8 +670,9 @@ awayGoalieCombo.grid(row = 3, column = 1)
 awayGoalieCombo.bind("<<ComboboxSelected>>", awayGoalieSelected)
 
 
-button = ttk.Button(root, text = 'Run', command=lambda : computeStats())
+button = ttk.Button(myFrame, text = 'Run', command=lambda : computeStats())
 button.pack()
+
 
 #GUI mainloop
 root.mainloop()
