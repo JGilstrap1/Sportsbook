@@ -547,29 +547,42 @@ def calculateStatistics():
 
 def calculateGoalsScored():
 
+    homeOffensiveAdjust = 0
+    awayOffensiveAdjust = 0
+
+    if parsedHomeStats.iloc[0]['OffensiveRank'] <= 7:
+        homeOffensiveAdjust = 1.0
+    elif parsedHomeStats.iloc[0]['OffensiveRank'] <= 15 and parsedHomeStats.iloc[0]['OffensiveRank'] > 7:
+        homeOffensiveAdjust = 0.5
+
+    if parsedAwayStats.iloc[0]['OffensiveRank'] <= 7:
+        awayOffensiveAdjust = 1.0
+    elif parsedAwayStats.iloc[0]['OffensiveRank'] <= 15 and parsedAwayStats.iloc[0]['OffensiveRank'] > 7:
+        awayOffensiveAdjust = 0.5
+
     #calculate score method one
-    homeMethodOne = statistics.mean([float(parsedHomeStats.iloc[0]['GF/GP']), float(parsedAwayStats.iloc[0]['GA/GP'])]) 
-    awayMethodOne = statistics.mean([float(parsedAwayStats.iloc[0]['GF/GP']), float(parsedHomeStats.iloc[0]['GA/GP'])])
+    homeMethodOne = (statistics.mean([float(parsedHomeStats.iloc[0]['GF/GP']), float(parsedAwayStats.iloc[0]['GA/GP'])]) + homeOffensiveAdjust)
+    awayMethodOne = (statistics.mean([float(parsedAwayStats.iloc[0]['GF/GP']), float(parsedHomeStats.iloc[0]['GA/GP'])]) + awayOffensiveAdjust)
 
     #calculate score method two
     homeExpectedShots =  statistics.mean([float(parsedHomeStats.iloc[0]['SF/GP']), float(parsedAwayStats.iloc[0]['SA/GP'])])
-    awayExpectedShots =  statistics.mean([float(parsedAwayStats.iloc[0]['SF/GP']), float(parsedHomeStats.iloc[0]['SA/GP'])]) 
-    homeMethodTwo = (1.0 - float(parsedAwayGoalieStats.iloc[0]['SV%'])) * homeExpectedShots
-    awayMethodTwo = (1.0 - float(parsedHomeGoalieStats.iloc[0]['SV%'])) * awayExpectedShots
+    awayExpectedShots =  statistics.mean([float(parsedAwayStats.iloc[0]['SF/GP']), float(parsedHomeStats.iloc[0]['SA/GP'])])
+    homeMethodTwo = (((1.0 - float(parsedAwayGoalieStats.iloc[0]['SV%'])) * homeExpectedShots) + homeOffensiveAdjust)
+    awayMethodTwo = (((1.0 - float(parsedHomeGoalieStats.iloc[0]['SV%'])) * awayExpectedShots) + awayOffensiveAdjust)
 
     #calculate score method three
     homeAvgShotsPerGoal = (float(parsedHomeStats.iloc[0]['SF/GP']) / float(parsedHomeStats.iloc[0]['GF/GP']))
     awayAvgShotsPerGoal = (float(parsedAwayStats.iloc[0]['SF/GP']) / float(parsedAwayStats.iloc[0]['GF/GP']))
-    homeMethodThree = (homeExpectedShots / homeAvgShotsPerGoal)
-    awayMethodThree = (awayExpectedShots / awayAvgShotsPerGoal)
+    homeMethodThree = ((homeExpectedShots / homeAvgShotsPerGoal) + homeOffensiveAdjust)
+    awayMethodThree = ((awayExpectedShots / awayAvgShotsPerGoal) + awayOffensiveAdjust)
 
     #method four
-    homeMethodfour = float(parsedAwayStats.iloc[0]['GA/GP'])
-    awayMethodFour = float(parsedHomeStats.iloc[0]['GA/GP'])
+    homeMethodfour = (float(parsedAwayStats.iloc[0]['GA/GP']) + homeOffensiveAdjust)
+    awayMethodFour = (float(parsedHomeStats.iloc[0]['GA/GP']) + awayOffensiveAdjust)
 
     #method five
-    homeMethodFive = float(parsedHomeStats.iloc[0]['GF/GP'])
-    awayMethodFive = float(parsedAwayStats.iloc[0]['GF/GP'])
+    homeMethodFive = (float(parsedHomeStats.iloc[0]['GF/GP']) + homeOffensiveAdjust)
+    awayMethodFive = (float(parsedAwayStats.iloc[0]['GF/GP']) + awayOffensiveAdjust)
 
     homeAverage = statistics.mean([homeMethodOne, homeMethodTwo, homeMethodThree, homeMethodfour, homeMethodFive])
     awayAverage = statistics.mean([awayMethodOne, awayMethodTwo, awayMethodThree, awayMethodFour, awayMethodFive])
@@ -577,22 +590,23 @@ def calculateGoalsScored():
     homeScore = homeAverage
     awayScore = awayAverage
 
-    if parsedAwayStats.iloc[0]['DefensiveRank'] < len(awayTeamStats):
+    if parsedAwayStats.iloc[0]['DefensiveRank'] < (len(awayTeamStats) / 2):
 
         homeScore = ((1 - (((len(awayTeamStats) / 2) - parsedAwayStats.iloc[0]['DefensiveRank']) / 100)) * homeAverage)
 
-    elif parsedAwayStats.iloc[0]['DefensiveRank'] > len(awayTeamStats):
+    elif parsedAwayStats.iloc[0]['DefensiveRank'] > (len(awayTeamStats) / 2):
 
-        homeScore = ((1 + (parsedAwayStats.iloc[0]['DefensiveRank'] - (len(awayTeamStats) / 2) / 100)) * homeAverage)
+        homeScore = ((1 + ((parsedAwayStats.iloc[0]['DefensiveRank'] - (len(awayTeamStats) / 2)) / 100)) * homeAverage)
 
 
-    if parsedHomeStats.iloc[0]['DefensiveRank'] < len(homeTeamStats):
+    if parsedHomeStats.iloc[0]['DefensiveRank'] < (len(awayTeamStats) / 2):
 
         awayScore = ((1 - (((len(homeTeamStats) / 2) - parsedHomeStats.iloc[0]['DefensiveRank']) / 100)) * awayAverage)
 
-    elif parsedHomeStats.iloc[0]['DefensiveRank'] > len(HomeTeamStats):
+    elif parsedHomeStats.iloc[0]['DefensiveRank'] > (len(awayTeamStats) / 2):
 
-        awayScore = ((1 + (parsedHomeStats.iloc[0]['DefensiveRank'] - (len(homeTeamStats) / 2) / 100)) * awayAverage)
+        awayScore = ((1 + ((parsedHomeStats.iloc[0]['DefensiveRank'] - (len(homeTeamStats) / 2)) / 100)) * awayAverage)
+    
 
     #display final calculated goals
     finalHomeGoals = StringVar()
@@ -617,14 +631,14 @@ def computeStats():
 
 
 #web scrape links
-homeTeamStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20192020&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayTeamStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20192020&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-homeGoalieStatsUrl = 'https://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20192020&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-awayGoalieStatsUrl = 'https://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20192020&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-homePowerPlayStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20192020&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayPowerPlayStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20192020&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-homePenaltyKillStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20192020&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayPenaltyKillStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20192020&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homeTeamStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayTeamStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homeGoalieStatsUrl = 'https://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+awayGoalieStatsUrl = 'https://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+homePowerPlayStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayPowerPlayStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homePenaltyKillStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayPenaltyKillStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
 streakStatsUrl = 'https://www.naturalstattrick.com/teamstreaks.php'
 
 
