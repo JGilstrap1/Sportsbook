@@ -6,8 +6,7 @@ from tkinter import ttk
 import statistics 
 
 root = Tk()
-root.title('Ner NHL Calculator')
-root.iconbitmap('/Users/jimbo/Documents/Sportsbook/zam.ico')
+root.title('NHL Prediction Calculator')
 root.geometry("600x1000")
 
 def webScrapeTeamStatsUrl(StatUrl):
@@ -109,7 +108,7 @@ def homeTeamSelected(e):
 
     global parsedHomeStreakStats
     homeStreakFilter = homeStreakStats['Team'] == homeTeam
-    parsedHomeStreakStats = homeStreakStats[homePkFilter]
+    parsedHomeStreakStats = homeStreakStats[homeStreakFilter]
 
 def awayTeamSelected(e):
 
@@ -128,7 +127,7 @@ def awayTeamSelected(e):
 
     global parsedAwayStreakStats
     awayStreakFilter = awayStreakStats['Team'] == awayTeam
-    parsedAwayStreakStats = awayStreakStats[awayPkFilter]
+    parsedAwayStreakStats = awayStreakStats[awayStreakFilter]
 
 def homeGoalieSelected(e):
 
@@ -211,45 +210,45 @@ def homeTeamDisplay():
     gagpLabelhome = Label(teamStatsFrame, text = "GA/GP")
     gagpLabelhome.grid(row = 4, column = 0, padx = 10, pady = 10)
 
-    #home team offensive strength
-    osLabelhome = Label(teamStatsFrame, text = "Offsensive Strength")
-    osLabelhome.grid(row = 5, column = 0, padx = 10, pady = 10)
+    # #home team offensive strength
+    # osLabelhome = Label(teamStatsFrame, text = "Offsensive Strength")
+    # osLabelhome.grid(row = 5, column = 0, padx = 10, pady = 10)
 
     #home team offensive rank
     orLabelhome = Label(teamStatsFrame, text = "Offsensive Rank")
-    orLabelhome.grid(row = 6, column = 0, padx = 10, pady = 10)
+    orLabelhome.grid(row = 5, column = 0, padx = 10, pady = 10)
 
-    #home team defensive strength
-    dsLabelhome = Label(teamStatsFrame, text = "Defensive Strength")
-    dsLabelhome.grid(row = 7, column = 0, padx = 10, pady = 10)
+    # #home team defensive strength
+    # dsLabelhome = Label(teamStatsFrame, text = "Defensive Strength")
+    # dsLabelhome.grid(row = 7, column = 0, padx = 10, pady = 10)
 
     #home team defensive rank
     drLabelhome = Label(teamStatsFrame, text = "Defensive Rank")
-    drLabelhome.grid(row = 8, column = 0, padx = 10, pady = 10)
+    drLabelhome.grid(row = 6, column = 0, padx = 10, pady = 10)
 
-    #home team powerplay strength
-    ppsLabelhome = Label(teamStatsFrame, text = "Powerplay Strength")
-    ppsLabelhome.grid(row = 9, column = 0, padx = 10, pady = 10)
+    # #home team powerplay strength
+    # ppsLabelhome = Label(teamStatsFrame, text = "Powerplay Strength")
+    # ppsLabelhome.grid(row = 9, column = 0, padx = 10, pady = 10)
 
     #home team powerplay ranking
     pprLabelhome = Label(teamStatsFrame, text = "Powerplay Ranking")
-    pprLabelhome.grid(row = 10, column = 0, padx = 10, pady = 10)
+    pprLabelhome.grid(row = 7, column = 0, padx = 10, pady = 10)
 
-    #home team pentaly kill strength
-    pksLabelhome = Label(teamStatsFrame, text = "Penalty Kill Strength")
-    pksLabelhome.grid(row = 11, column = 0, padx = 10, pady = 10)
+    # #home team pentaly kill strength
+    # pksLabelhome = Label(teamStatsFrame, text = "Penalty Kill Strength")
+    # pksLabelhome.grid(row = 11, column = 0, padx = 10, pady = 10)
 
     #home team pentaly kill ranking
     pkrLabelhome = Label(teamStatsFrame, text = "Penalty Kill Ranking")
-    pkrLabelhome.grid(row = 12, column = 0, padx = 10, pady = 10)
+    pkrLabelhome.grid(row = 8, column = 0, padx = 10, pady = 10)
 
     #home team win streak
     wsLabelhome = Label(teamStatsFrame, text = "Win Streak")
-    wsLabelhome.grid(row = 13, column = 0, padx = 10, pady = 10)
+    wsLabelhome.grid(row = 9, column = 0, padx = 10, pady = 10)
 
     #home team loss streak
     lsLabelhome = Label(teamStatsFrame, text = "Loss Streak")
-    lsLabelhome.grid(row = 14, column = 0, padx = 10, pady = 10)
+    lsLabelhome.grid(row = 10, column = 0, padx = 10, pady = 10)
 
 def awayTeamDisplay():
 
@@ -273,45 +272,45 @@ def awayTeamDisplay():
     gagpLabelAway = Label(teamStatsFrame, text = "GA/GP")
     gagpLabelAway.grid(row = 4, column = 3, padx = 10, pady = 10)
 
-    #away team offensive strength
-    osLabelAway = Label(teamStatsFrame, text = "Offsensive Strength")
-    osLabelAway.grid(row = 5, column = 3, padx = 10, pady = 10)
+    # #away team offensive strength
+    # osLabelAway = Label(teamStatsFrame, text = "Offsensive Strength")
+    # osLabelAway.grid(row = 5, column = 3, padx = 10, pady = 10)
 
     #away team offensive rank
     orLabelAway = Label(teamStatsFrame, text = "Offsensive Rank")
-    orLabelAway.grid(row = 6, column = 3, padx = 10, pady = 10)
+    orLabelAway.grid(row = 5, column = 3, padx = 10, pady = 10)
 
-    #away team defensive strength
-    dsLabelAway = Label(teamStatsFrame, text = "Defensive Strength")
-    dsLabelAway.grid(row = 7, column = 3, padx = 10, pady = 10)
+    # #away team defensive strength
+    # dsLabelAway = Label(teamStatsFrame, text = "Defensive Strength")
+    # dsLabelAway.grid(row = 7, column = 3, padx = 10, pady = 10)
 
     #away team defensive rank
     drLabelAway = Label(teamStatsFrame, text = "Defensive Rank")
-    drLabelAway.grid(row = 8, column = 3, padx = 10, pady = 10)
+    drLabelAway.grid(row = 6, column = 3, padx = 10, pady = 10)
 
-    #away team powerplay strength
-    ppsLabelAway = Label(teamStatsFrame, text = "Powerplay Strength")
-    ppsLabelAway.grid(row = 9, column = 3, padx = 10, pady = 10)
+    # #away team powerplay strength
+    # ppsLabelAway = Label(teamStatsFrame, text = "Powerplay Strength")
+    # ppsLabelAway.grid(row = 9, column = 3, padx = 10, pady = 10)
 
     #away team powerplay ranking
     pprLabelAway = Label(teamStatsFrame, text = "Powerplay Ranking")
-    pprLabelAway.grid(row = 10, column = 3, padx = 10, pady = 10)
+    pprLabelAway.grid(row = 7, column = 3, padx = 10, pady = 10)
 
-    #away team pentaly kill strength
-    pksLabelAway = Label(teamStatsFrame, text = "Penalty Kill Strength")
-    pksLabelAway.grid(row = 11, column = 3, padx = 10, pady = 10)
+    # #away team pentaly kill strength
+    # pksLabelAway = Label(teamStatsFrame, text = "Penalty Kill Strength")
+    # pksLabelAway.grid(row = 11, column = 3, padx = 10, pady = 10)
 
     #away team pentaly kill ranking
     pkrLabelAway = Label(teamStatsFrame, text = "Penalty Kill Ranking")
-    pkrLabelAway.grid(row = 12, column = 3, padx = 10, pady = 10)
+    pkrLabelAway.grid(row = 8, column = 3, padx = 10, pady = 10)
 
     #away team win streak
     wsLabelAway = Label(teamStatsFrame, text = "Win Streak")
-    wsLabelAway.grid(row = 13, column = 3, padx = 10, pady = 10)
+    wsLabelAway.grid(row = 9, column = 3, padx = 10, pady = 10)
 
     #away team loss streak
     lsLabelAway = Label(teamStatsFrame, text = "Loss Streak")
-    lsLabelAway.grid(row = 14, column = 3, padx = 10, pady = 10)
+    lsLabelAway.grid(row = 10, column = 3, padx = 10, pady = 10)
 
 
 def populateHomeGoalieStats():
@@ -406,26 +405,26 @@ def populateHomeTeamStats():
     gfgpHome.grid(row = 3, column = 1, padx = 10, pady = 10)
     gagpHome = Label(teamStatsFrame, textvariable = homeGAGP)
     gagpHome.grid(row = 4, column = 1, padx = 10, pady = 10)
-    osHome = Label(teamStatsFrame, textvariable = homeOS)
-    osHome.grid(row = 5, column = 1, padx = 10, pady = 10)
+    # osHome = Label(teamStatsFrame, textvariable = homeOS)
+    # osHome.grid(row = 5, column = 1, padx = 10, pady = 10)
     orHome = Label(teamStatsFrame, textvariable = homeOR)
-    orHome.grid(row = 6, column = 1, padx = 10, pady = 10)
-    dsHome = Label(teamStatsFrame, textvariable = homeDS)
-    dsHome.grid(row = 7, column = 1, padx = 10, pady = 10)
+    orHome.grid(row = 5, column = 1, padx = 10, pady = 10)
+    # dsHome = Label(teamStatsFrame, textvariable = homeDS)
+    # dsHome.grid(row = 7, column = 1, padx = 10, pady = 10)
     drHome = Label(teamStatsFrame, textvariable = homeDR)
-    drHome.grid(row = 8, column = 1, padx = 10, pady = 10)
-    PpHome = Label(teamStatsFrame, textvariable = homePP)
-    PpHome.grid(row = 9, column = 1, padx = 10, pady = 10)
+    drHome.grid(row = 6, column = 1, padx = 10, pady = 10)
+    # PpHome = Label(teamStatsFrame, textvariable = homePP)
+    # PpHome.grid(row = 9, column = 1, padx = 10, pady = 10)
     PprHome = Label(teamStatsFrame, textvariable = homePPR)
-    PprHome.grid(row = 10, column = 1, padx = 10, pady = 10)
-    PkHome = Label(teamStatsFrame, textvariable = homePK)
-    PkHome.grid(row = 11, column = 1, padx = 10, pady = 10)
+    PprHome.grid(row = 7, column = 1, padx = 10, pady = 10)
+    # PkHome = Label(teamStatsFrame, textvariable = homePK)
+    # PkHome.grid(row = 11, column = 1, padx = 10, pady = 10)
     PkrHome = Label(teamStatsFrame, textvariable = homePKR)
-    PkrHome.grid(row = 12, column = 1, padx = 10, pady = 10)
+    PkrHome.grid(row = 8, column = 1, padx = 10, pady = 10)
     winsStreakHome = Label(teamStatsFrame, textvariable = homeStreakWins)
-    winsStreakHome.grid(row = 13, column = 1, padx = 10, pady = 10)
+    winsStreakHome.grid(row = 9, column = 1, padx = 10, pady = 10)
     lossStreakHome = Label(teamStatsFrame, textvariable = homeStreakLosses)
-    lossStreakHome.grid(row = 14, column = 1, padx = 10, pady = 10)
+    lossStreakHome.grid(row = 10, column = 1, padx = 10, pady = 10)
 
 def populateAwayTeamStats():
 
@@ -471,26 +470,26 @@ def populateAwayTeamStats():
     gfgpAway.grid(row = 3, column = 4, padx = 10, pady = 10)
     gagpAway = Label(teamStatsFrame, textvariable = awayGAGP)
     gagpAway.grid(row = 4, column = 4, padx = 10, pady = 10)
-    osAway = Label(teamStatsFrame, textvariable = awayOS)
-    osAway.grid(row = 5, column = 4, padx = 10, pady = 10)
+    # osAway = Label(teamStatsFrame, textvariable = awayOS)
+    # osAway.grid(row = 5, column = 4, padx = 10, pady = 10)
     orAway = Label(teamStatsFrame, textvariable = awayOR)
-    orAway.grid(row = 6, column = 4, padx = 10, pady = 10)
-    dsAway = Label(teamStatsFrame, textvariable = awayDS)
-    dsAway.grid(row = 7, column = 4, padx = 10, pady = 10)
+    orAway.grid(row = 5, column = 4, padx = 10, pady = 10)
+    # dsAway = Label(teamStatsFrame, textvariable = awayDS)
+    # dsAway.grid(row = 7, column = 4, padx = 10, pady = 10)
     drAway = Label(teamStatsFrame, textvariable = awayDR)
-    drAway.grid(row = 8, column = 4, padx = 10, pady = 10)
-    PpAway = Label(teamStatsFrame, textvariable = awayPP)
-    PpAway.grid(row = 9, column = 4, padx = 10, pady = 10)
+    drAway.grid(row = 6, column = 4, padx = 10, pady = 10)
+    # PpAway = Label(teamStatsFrame, textvariable = awayPP)
+    # PpAway.grid(row = 9, column = 4, padx = 10, pady = 10)
     PprAway = Label(teamStatsFrame, textvariable = awayPPR)
-    PprAway.grid(row = 10, column = 4, padx = 10, pady = 10)
-    PkAway = Label(teamStatsFrame, textvariable = awayPK)
-    PkAway.grid(row = 11, column = 4, padx = 10, pady = 10)
+    PprAway.grid(row = 7, column = 4, padx = 10, pady = 10)
+    # PkAway = Label(teamStatsFrame, textvariable = awayPK)
+    # PkAway.grid(row = 11, column = 4, padx = 10, pady = 10)
     PkrAway = Label(teamStatsFrame, textvariable = awayPKR)
-    PkrAway.grid(row = 12, column = 4, padx = 10, pady = 10)
+    PkrAway.grid(row = 8, column = 4, padx = 10, pady = 10)
     winsStreakAway = Label(teamStatsFrame, textvariable = awayStreakWins)
-    winsStreakAway.grid(row = 13, column = 4, padx = 10, pady = 10)
+    winsStreakAway.grid(row = 9, column = 4, padx = 10, pady = 10)
     lossStreakAway = Label(teamStatsFrame, textvariable = awayStreakLosses)
-    lossStreakAway.grid(row = 14, column = 4, padx = 10, pady = 10)
+    lossStreakAway.grid(row = 10, column = 4, padx = 10, pady = 10)
     
 def calculateStatistics():
 
