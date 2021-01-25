@@ -14,8 +14,9 @@ def webScrapeTeamStatsUrl(StatUrl):
     dfs = pd.read_html(StatUrl)
 
     for df in dfs:
-        df_subset = DataFrame(df, columns = ['Team', 'GP', 'W', 'L', 'OTL','Points', 'SF', 'SF/GP', 'SA', 'SA/GP', 'GF', 'GF/GP', 'GA',
-                                             'GA/GP', 'OffensiveStrength', 'OffensiveRank', 'DefensiveStrength', 'DefensiveRank'])
+        df_subset = DataFrame(df, columns = ['Team', 'GP', 'W', 'L', 'OTL','Points', 'SF', 'SF/GP', 'SA', 'SA/GP', 'GF', 'GF/GP', 'GF/GP_Rank',
+                                             'xGF', 'xGF_Rank', 'xGA', 'xGA_Rank', 'GA', 'GA/GP', 'GA/GP_Rank', 'CompareGF', 'OffensiveRank',
+                                             'CompareGA', 'DefensiveRank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank', 'SCA', 'SCGA', 'SCD', 'SCD_Rank'])
 
     for idx, row in df_subset.iterrows():
         df_subset.loc[idx, 'GF/GP'] = row['GF'] / row['GP']
@@ -24,16 +25,29 @@ def webScrapeTeamStatsUrl(StatUrl):
         df_subset.loc[idx, 'SA/GP'] = row['SA'] / row['GP']
 
     for idx, row in df_subset.iterrows():
-        df_subset.loc[idx, 'OffensiveStrength'] = row['GF/GP'] / df_subset['GF/GP'].mean()
-        df_subset.loc[idx, 'DefensiveStrength'] = row['GA/GP'] / df_subset['GF/GP'].mean()
+        df_subset.loc[idx, 'CompareGF'] = row['GF/GP'] / df_subset['GF/GP'].mean()
+        df_subset.loc[idx, 'CompareGA'] = row['GA/GP'] / df_subset['GF/GP'].mean()
+        df_subset.loc[idx, 'SCO'] = (row['SCGF'] / row['SCF']) * 100
+        df_subset.loc[idx, 'SCD'] = (row['SCGA'] / row['SCA']) * 100
     
-    df_subset['OffensiveRank'] = df_subset['OffensiveStrength'].rank(ascending=False)
-    df_subset['DefensiveRank'] = df_subset['DefensiveStrength'].rank()
+    df_subset['GF/GP_Rank'] = df_subset['CompareGF'].rank(ascending=False)
+    df_subset['GA/GP_Rank'] = df_subset['CompareGA'].rank()
+
+    df_subset['xGF_Rank'] = df_subset['xGF'].rank(ascending=False)
+    df_subset['xGA_Rank'] = df_subset['xGA'].rank()
+
+    df_subset['SCO_Rank'] = df_subset['SCO'].rank(ascending=False)
+    df_subset['SCD_Rank'] = df_subset['SCD'].rank()
+
+    for idx, row in df_subset.iterrows():
+        df_subset['OffensiveRank'] = ((df_subset['xGF_Rank'] + df_subset['GF/GP_Rank'] + df_subset['SCO_Rank']) / 3)
+        df_subset['DefensiveRank'] = ((df_subset['xGA_Rank'] + df_subset['GA/GP_Rank'] + df_subset['SCD_Rank']) / 3)
 
     df_subset['GF/GP'] = df_subset['GF/GP'].map('{:,.2f}'.format)
     df_subset['GA/GP'] = df_subset['GA/GP'].map('{:,.2f}'.format)
-    df_subset['OffensiveStrength'] = df_subset['OffensiveStrength'].map('{:,.2f}'.format)
-    df_subset['DefensiveStrength'] = df_subset['DefensiveStrength'].map('{:,.2f}'.format)
+
+    df_subset['OffensiveRank'] = df_subset['OffensiveRank'].map('{:,.0f}'.format)
+    df_subset['DefensiveRank'] = df_subset['DefensiveRank'].map('{:,.0f}'.format)
 
     return df_subset
 
@@ -383,13 +397,9 @@ def populateHomeTeamStats():
     homeOTL.set(parsedHomeStats.iloc[0]['OTL'])
     homeGFGP.set(parsedHomeStats.iloc[0]['GF/GP'])
     homeGAGP.set(parsedHomeStats.iloc[0]['GA/GP'])
-    homeOS.set(parsedHomeStats.iloc[0]['OffensiveStrength'])
     homeOR.set(parsedHomeStats.iloc[0]['OffensiveRank'])
-    homeDS.set(parsedHomeStats.iloc[0]['DefensiveStrength'])
     homeDR.set(parsedHomeStats.iloc[0]['DefensiveRank'])
-    homePP.set(parsedHomePpStats.iloc[0]['PP'])
     homePPR.set(parsedHomePpStats.iloc[0]['PP Rank'])
-    homePK.set(parsedHomePkStats.iloc[0]['PK'])
     homePKR.set(parsedHomePkStats.iloc[0]['PK Rank'])
     homeStreakWins.set(parsedHomeStreakStats.iloc[0]['Wins'])
     homeStreakLosses.set(parsedHomeStreakStats.iloc[0]['Losses'])
@@ -405,20 +415,12 @@ def populateHomeTeamStats():
     gfgpHome.grid(row = 3, column = 1, padx = 10, pady = 10)
     gagpHome = Label(teamStatsFrame, textvariable = homeGAGP)
     gagpHome.grid(row = 4, column = 1, padx = 10, pady = 10)
-    # osHome = Label(teamStatsFrame, textvariable = homeOS)
-    # osHome.grid(row = 5, column = 1, padx = 10, pady = 10)
     orHome = Label(teamStatsFrame, textvariable = homeOR)
     orHome.grid(row = 5, column = 1, padx = 10, pady = 10)
-    # dsHome = Label(teamStatsFrame, textvariable = homeDS)
-    # dsHome.grid(row = 7, column = 1, padx = 10, pady = 10)
     drHome = Label(teamStatsFrame, textvariable = homeDR)
     drHome.grid(row = 6, column = 1, padx = 10, pady = 10)
-    # PpHome = Label(teamStatsFrame, textvariable = homePP)
-    # PpHome.grid(row = 9, column = 1, padx = 10, pady = 10)
     PprHome = Label(teamStatsFrame, textvariable = homePPR)
     PprHome.grid(row = 7, column = 1, padx = 10, pady = 10)
-    # PkHome = Label(teamStatsFrame, textvariable = homePK)
-    # PkHome.grid(row = 11, column = 1, padx = 10, pady = 10)
     PkrHome = Label(teamStatsFrame, textvariable = homePKR)
     PkrHome.grid(row = 8, column = 1, padx = 10, pady = 10)
     winsStreakHome = Label(teamStatsFrame, textvariable = homeStreakWins)
@@ -449,13 +451,9 @@ def populateAwayTeamStats():
     awayOTL.set(parsedAwayStats.iloc[0]['OTL'])
     awayGFGP.set(parsedAwayStats.iloc[0]['GF/GP'])
     awayGAGP.set(parsedAwayStats.iloc[0]['GA/GP'])
-    awayOS.set(parsedAwayStats.iloc[0]['OffensiveStrength'])
     awayOR.set(parsedAwayStats.iloc[0]['OffensiveRank'])
-    awayDS.set(parsedAwayStats.iloc[0]['DefensiveStrength'])
     awayDR.set(parsedAwayStats.iloc[0]['DefensiveRank'])
-    awayPP.set(parsedAwayPpStats.iloc[0]['PP'])
     awayPPR.set(parsedAwayPpStats.iloc[0]['PP Rank'])
-    awayPK.set(parsedAwayPkStats.iloc[0]['PK'])
     awayPKR.set(parsedAwayPkStats.iloc[0]['PK Rank'])
     awayStreakWins.set(parsedAwayStreakStats.iloc[0]['Wins'])
     awayStreakLosses.set(parsedAwayStreakStats.iloc[0]['Losses'])
@@ -470,20 +468,12 @@ def populateAwayTeamStats():
     gfgpAway.grid(row = 3, column = 4, padx = 10, pady = 10)
     gagpAway = Label(teamStatsFrame, textvariable = awayGAGP)
     gagpAway.grid(row = 4, column = 4, padx = 10, pady = 10)
-    # osAway = Label(teamStatsFrame, textvariable = awayOS)
-    # osAway.grid(row = 5, column = 4, padx = 10, pady = 10)
     orAway = Label(teamStatsFrame, textvariable = awayOR)
     orAway.grid(row = 5, column = 4, padx = 10, pady = 10)
-    # dsAway = Label(teamStatsFrame, textvariable = awayDS)
-    # dsAway.grid(row = 7, column = 4, padx = 10, pady = 10)
     drAway = Label(teamStatsFrame, textvariable = awayDR)
     drAway.grid(row = 6, column = 4, padx = 10, pady = 10)
-    # PpAway = Label(teamStatsFrame, textvariable = awayPP)
-    # PpAway.grid(row = 9, column = 4, padx = 10, pady = 10)
     PprAway = Label(teamStatsFrame, textvariable = awayPPR)
     PprAway.grid(row = 7, column = 4, padx = 10, pady = 10)
-    # PkAway = Label(teamStatsFrame, textvariable = awayPK)
-    # PkAway.grid(row = 11, column = 4, padx = 10, pady = 10)
     PkrAway = Label(teamStatsFrame, textvariable = awayPKR)
     PkrAway.grid(row = 8, column = 4, padx = 10, pady = 10)
     winsStreakAway = Label(teamStatsFrame, textvariable = awayStreakWins)
@@ -501,8 +491,8 @@ def calculateStatistics():
 
     #home strength calcs
     numOfHomeTeams = len(homeTeamStats)
-    homeOffensiveStrengthCalc = ((numOfHomeTeams - parsedHomeStats.iloc[0]['OffensiveRank']) * 0.30)
-    homeDefensiveStrengthCalc = ((numOfHomeTeams - parsedHomeStats.iloc[0]['DefensiveRank']) * 0.20)
+    homeOffensiveStrengthCalc = ((numOfHomeTeams - int(parsedHomeStats.iloc[0]['OffensiveRank'])) * 0.30)
+    homeDefensiveStrengthCalc = ((numOfHomeTeams - int(parsedHomeStats.iloc[0]['DefensiveRank'])) * 0.20)
     homePowerPlayStrengthCalc = ((numOfHomeTeams - parsedHomePpStats.iloc[0]['PP Rank']) * 0.15)
     homePentalyKillStrengthCalc = ((numOfHomeTeams - parsedAwayPkStats.iloc[0]['PK Rank']) * 0.15)
 
@@ -514,8 +504,8 @@ def calculateStatistics():
 
     #away offensive strength
     numOfAwayTeams = len(awayTeamStats)
-    awayOffensiveStrengthCalc = ((numOfAwayTeams - parsedAwayStats.iloc[0]['OffensiveRank']) * 0.30)
-    awayDefensiveStrengthCalc = ((numOfAwayTeams - parsedAwayStats.iloc[0]['DefensiveRank']) * 0.20)
+    awayOffensiveStrengthCalc = ((numOfAwayTeams - int(parsedAwayStats.iloc[0]['OffensiveRank'])) * 0.30)
+    awayDefensiveStrengthCalc = ((numOfAwayTeams - int(parsedAwayStats.iloc[0]['DefensiveRank'])) * 0.20)
     awayPowerPlayStrengthCalc = ((numOfAwayTeams - parsedAwayPpStats.iloc[0]['PP Rank']) * 0.15)
     awayPentalyKillStrengthCalc = ((numOfAwayTeams - parsedAwayPkStats.iloc[0]['PK Rank']) * 0.15)
 
@@ -549,14 +539,14 @@ def calculateGoalsScored():
     homeOffensiveAdjust = 0
     awayOffensiveAdjust = 0
 
-    if parsedHomeStats.iloc[0]['OffensiveRank'] <= 7:
+    if int(parsedHomeStats.iloc[0]['OffensiveRank']) <= 7:
         homeOffensiveAdjust = 1.0
-    elif parsedHomeStats.iloc[0]['OffensiveRank'] <= 15 and parsedHomeStats.iloc[0]['OffensiveRank'] > 7:
+    elif int(parsedHomeStats.iloc[0]['OffensiveRank']) <= 15 and int(parsedHomeStats.iloc[0]['OffensiveRank']) > 7:
         homeOffensiveAdjust = 0.5
 
-    if parsedAwayStats.iloc[0]['OffensiveRank'] <= 7:
+    if int(parsedHomeStats.iloc[0]['OffensiveRank']) <= 7:
         awayOffensiveAdjust = 1.0
-    elif parsedAwayStats.iloc[0]['OffensiveRank'] <= 15 and parsedAwayStats.iloc[0]['OffensiveRank'] > 7:
+    elif int(parsedHomeStats.iloc[0]['OffensiveRank']) <= 15 and int(parsedHomeStats.iloc[0]['OffensiveRank']) > 7:
         awayOffensiveAdjust = 0.5
 
     #calculate score method one
@@ -589,22 +579,22 @@ def calculateGoalsScored():
     homeScore = homeAverage
     awayScore = awayAverage
 
-    if parsedAwayStats.iloc[0]['DefensiveRank'] < (len(awayTeamStats) / 2):
+    if int(parsedAwayStats.iloc[0]['DefensiveRank']) < (len(awayTeamStats) / 2):
 
-        homeScore = ((1 - (((len(awayTeamStats) / 2) - parsedAwayStats.iloc[0]['DefensiveRank']) / 100)) * homeAverage)
+        homeScore = ((1 - (((len(awayTeamStats) / 2) - int(parsedAwayStats.iloc[0]['DefensiveRank'])) / 100)) * homeAverage)
 
-    elif parsedAwayStats.iloc[0]['DefensiveRank'] > (len(awayTeamStats) / 2):
+    elif int(parsedAwayStats.iloc[0]['DefensiveRank']) > (len(awayTeamStats) / 2):
 
-        homeScore = ((1 + ((parsedAwayStats.iloc[0]['DefensiveRank'] - (len(awayTeamStats) / 2)) / 100)) * homeAverage)
+        homeScore = ((1 + ((int(parsedAwayStats.iloc[0]['DefensiveRank']) - (len(awayTeamStats) / 2)) / 100)) * homeAverage)
 
 
-    if parsedHomeStats.iloc[0]['DefensiveRank'] < (len(awayTeamStats) / 2):
+    if int(parsedAwayStats.iloc[0]['DefensiveRank']) < (len(awayTeamStats) / 2):
 
-        awayScore = ((1 - (((len(homeTeamStats) / 2) - parsedHomeStats.iloc[0]['DefensiveRank']) / 100)) * awayAverage)
+        awayScore = ((1 - (((len(homeTeamStats) / 2) - int(parsedAwayStats.iloc[0]['DefensiveRank'])) / 100)) * awayAverage)
 
-    elif parsedHomeStats.iloc[0]['DefensiveRank'] > (len(awayTeamStats) / 2):
+    elif int(parsedAwayStats.iloc[0]['DefensiveRank']) > (len(awayTeamStats) / 2):
 
-        awayScore = ((1 + ((parsedHomeStats.iloc[0]['DefensiveRank'] - (len(homeTeamStats) / 2)) / 100)) * awayAverage)
+        awayScore = ((1 + ((int(parsedAwayStats.iloc[0]['DefensiveRank']) - (len(homeTeamStats) / 2)) / 100)) * awayAverage)
     
 
     #display final calculated goals
@@ -630,15 +620,24 @@ def computeStats():
 
 
 #web scrape links
-homeTeamStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayTeamStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-homeGoalieStatsUrl = 'https://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-awayGoalieStatsUrl = 'https://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-homePowerPlayStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayPowerPlayStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-homePenaltyKillStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayPenaltyKillStatsUrl = 'https://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-streakStatsUrl = 'https://www.naturalstattrick.com/teamstreaks.php'
+# homeTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+# awayTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+# homeGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+# awayGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+# homePowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+# awayPowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+# homePenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+# awayPenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+
+homeTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homeGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+awayGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+homePowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayPowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homePenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayPenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+streakStatsUrl = 'http://www.naturalstattrick.com/teamstreaks.php'
 
 
 #web scrape to get dataframe tables in Pandas
