@@ -68,14 +68,22 @@ def webScrapePowerPlayStatsUrl(StatUrl):
     dfs = pd.read_html(StatUrl)
 
     for df in dfs:
-        df_subset = DataFrame(df, columns = ['Team', 'GF', 'PP', 'PP Rank'])
+        df_subset = DataFrame(df, columns = ['Team', 'GF', 'PP', 'GF_Rank', 'PP_Rank', 'xGF', 'xGF_Rank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank'])
 
     for idx, row in df_subset.iterrows():
         df_subset.loc[idx, 'PP'] = row['GF'] / df_subset['GF'].mean()
+        df_subset.loc[idx, 'SCO'] = (row['SCGF'] / row['SCF']) * 100
     
     df_subset['PP'] = df_subset['PP'].map('{:,.2f}'.format)
     
-    df_subset['PP Rank'] = df_subset['PP'].rank(ascending=False)
+    df_subset['GF_Rank'] = df_subset['PP'].rank(ascending=False)
+    df_subset['xGF_Rank'] = df_subset['xGF'].rank(ascending=False)
+    df_subset['SCO_Rank'] = df_subset['SCO'].rank(ascending=False)
+
+    for idx, row in df_subset.iterrows():
+        df_subset['PP_Rank'] = ((df_subset['GF_Rank'] + df_subset['xGF_Rank'] + df_subset['SCO_Rank']) / 3)
+    
+    df_subset['PP_Rank'] = df_subset['PP_Rank'].map('{:,.0f}'.format)
 
     return df_subset
 
@@ -84,14 +92,22 @@ def webScrapePenaltyKillStatsUrl(StatUrl):
     dfs = pd.read_html(StatUrl)
 
     for df in dfs:
-        df_subset = DataFrame(df, columns = ['Team', 'GA', 'PK', 'PK Rank'])
+        df_subset = DataFrame(df, columns = ['Team', 'GA', 'PK', 'GA_Rank', 'PK_Rank', 'xGA', 'xGA_Rank', 'SCA', 'SCGA', 'SCD', 'SCA_Rank'])
 
     for idx, row in df_subset.iterrows():
         df_subset.loc[idx, 'PK'] = row['GA'] / df_subset['GA'].mean()
+        df_subset.loc[idx, 'SCD'] = (row['SCGA'] / row['SCA']) * 100
 
     df_subset['PK'] = df_subset['PK'].map('{:,.2f}'.format)
     
-    df_subset['PK Rank'] = df_subset['PK'].rank()
+    df_subset['GA_Rank'] = df_subset['PK'].rank()
+    df_subset['xGA_Rank'] = df_subset['xGA'].rank()
+    df_subset['SCA_Rank'] = df_subset['SCD'].rank()
+
+    for idx, row in df_subset.iterrows():
+        df_subset['PK_Rank'] = ((df_subset['GA_Rank'] + df_subset['xGA_Rank'] + df_subset['SCA_Rank']) / 3)
+    
+    df_subset['PK_Rank'] = df_subset['PK_Rank'].map('{:,.0f}'.format)
 
     return df_subset
 
@@ -399,8 +415,8 @@ def populateHomeTeamStats():
     homeGAGP.set(parsedHomeStats.iloc[0]['GA/GP'])
     homeOR.set(parsedHomeStats.iloc[0]['OffensiveRank'])
     homeDR.set(parsedHomeStats.iloc[0]['DefensiveRank'])
-    homePPR.set(parsedHomePpStats.iloc[0]['PP Rank'])
-    homePKR.set(parsedHomePkStats.iloc[0]['PK Rank'])
+    homePPR.set(parsedHomePpStats.iloc[0]['PP_Rank'])
+    homePKR.set(parsedHomePkStats.iloc[0]['PK_Rank'])
     homeStreakWins.set(parsedHomeStreakStats.iloc[0]['Wins'])
     homeStreakLosses.set(parsedHomeStreakStats.iloc[0]['Losses'])
 
@@ -453,8 +469,8 @@ def populateAwayTeamStats():
     awayGAGP.set(parsedAwayStats.iloc[0]['GA/GP'])
     awayOR.set(parsedAwayStats.iloc[0]['OffensiveRank'])
     awayDR.set(parsedAwayStats.iloc[0]['DefensiveRank'])
-    awayPPR.set(parsedAwayPpStats.iloc[0]['PP Rank'])
-    awayPKR.set(parsedAwayPkStats.iloc[0]['PK Rank'])
+    awayPPR.set(parsedAwayPpStats.iloc[0]['PP_Rank'])
+    awayPKR.set(parsedAwayPkStats.iloc[0]['PK_Rank'])
     awayStreakWins.set(parsedAwayStreakStats.iloc[0]['Wins'])
     awayStreakLosses.set(parsedAwayStreakStats.iloc[0]['Losses'])
 
@@ -493,8 +509,8 @@ def calculateStatistics():
     numOfHomeTeams = len(homeTeamStats)
     homeOffensiveStrengthCalc = ((numOfHomeTeams - int(parsedHomeStats.iloc[0]['OffensiveRank'])) * 0.30)
     homeDefensiveStrengthCalc = ((numOfHomeTeams - int(parsedHomeStats.iloc[0]['DefensiveRank'])) * 0.20)
-    homePowerPlayStrengthCalc = ((numOfHomeTeams - parsedHomePpStats.iloc[0]['PP Rank']) * 0.15)
-    homePentalyKillStrengthCalc = ((numOfHomeTeams - parsedAwayPkStats.iloc[0]['PK Rank']) * 0.15)
+    homePowerPlayStrengthCalc = ((numOfHomeTeams - int(parsedHomePpStats.iloc[0]['PP_Rank'])) * 0.15)
+    homePentalyKillStrengthCalc = ((numOfHomeTeams - int(parsedAwayPkStats.iloc[0]['PK_Rank'])) * 0.15)
 
     #away goalie stats
     #away goalie / 2.5 since the number of goalies is significantly higher than number of teams
@@ -506,8 +522,8 @@ def calculateStatistics():
     numOfAwayTeams = len(awayTeamStats)
     awayOffensiveStrengthCalc = ((numOfAwayTeams - int(parsedAwayStats.iloc[0]['OffensiveRank'])) * 0.30)
     awayDefensiveStrengthCalc = ((numOfAwayTeams - int(parsedAwayStats.iloc[0]['DefensiveRank'])) * 0.20)
-    awayPowerPlayStrengthCalc = ((numOfAwayTeams - parsedAwayPpStats.iloc[0]['PP Rank']) * 0.15)
-    awayPentalyKillStrengthCalc = ((numOfAwayTeams - parsedAwayPkStats.iloc[0]['PK Rank']) * 0.15)
+    awayPowerPlayStrengthCalc = ((numOfAwayTeams - int(parsedAwayPpStats.iloc[0]['PP_Rank'])) * 0.15)
+    awayPentalyKillStrengthCalc = ((numOfAwayTeams - int(parsedAwayPkStats.iloc[0]['PK_Rank'])) * 0.15)
 
     #calculate totals
     homeTotalCount = homeGoalieGaaCalc + homeGoalieSvCalc + homeOffensiveStrengthCalc + homeDefensiveStrengthCalc + homePowerPlayStrengthCalc + homePentalyKillStrengthCalc
