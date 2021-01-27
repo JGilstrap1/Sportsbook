@@ -3,10 +3,12 @@ from pandas import DataFrame
 import numpy as np
 from tkinter import *
 from tkinter import ttk
-import statistics 
+import statistics
+import cmath
 
 root = Tk()
 root.title('NHL Prediction Calculator')
+root.iconbitmap('/Users/jimbo/Documents/Sportsbook/exe/Skating.icns')
 root.geometry("600x1000")
 
 def webScrapeTeamStatsUrl(StatUrl):
@@ -121,10 +123,10 @@ def webScrapeStreakStatsUrl(StatUrl):
     return df_subset
 
 
-def homeTeamSelected(e):
+def homeTeamSelected(homeTeam):
 
     global parsedHomeStats
-    homeTeam = homeTeamCombo.get()
+    #homeTeam = homeTeamCombo.get()
     homeFilter = homeTeamStats['Team'] == homeTeam
     parsedHomeStats = homeTeamStats[homeFilter]
 
@@ -140,10 +142,9 @@ def homeTeamSelected(e):
     homeStreakFilter = homeStreakStats['Team'] == homeTeam
     parsedHomeStreakStats = homeStreakStats[homeStreakFilter]
 
-def awayTeamSelected(e):
+def awayTeamSelected(awayTeam):
 
     global parsedAwayStats
-    awayTeam = awayTeamCombo.get()
     awayFilter = awayTeamStats['Team'] == awayTeam
     parsedAwayStats = awayTeamStats[awayFilter]
 
@@ -159,17 +160,15 @@ def awayTeamSelected(e):
     awayStreakFilter = awayStreakStats['Team'] == awayTeam
     parsedAwayStreakStats = awayStreakStats[awayStreakFilter]
 
-def homeGoalieSelected(e):
+def homeGoalieSelected(homeGoalie):
 
     global parsedHomeGoalieStats
-    homeGoalie = homeGoalieCombo.get()
     homeFilter = homeGoalieStats['Player'] == homeGoalie
     parsedHomeGoalieStats = homeGoalieStats[homeFilter]
 
-def awayGoalieSelected(e):
+def awayGoalieSelected(awayGoalie):
 
     global parsedAwayGoalieStats
-    awayGoalie = awayGoalieCombo.get()
     awayFilter = awayGoalieStats['Player'] == awayGoalie
     parsedAwayGoalieStats = awayGoalieStats[awayFilter]
 
@@ -634,6 +633,114 @@ def computeStats():
     calculateStatistics()
     calculateGoalsScored()
 
+def updateHomeListBox(homeTeamValues):
+
+    homeTeamList.delete(0, END)
+
+    for item in homeTeamValues:
+        homeTeamList.insert(END, item)
+
+def fillOutHomeTeamList(e):
+
+    homeTeamSearchBox.delete(0, END)
+    homeTeamSearchBox.insert(0, homeTeamList.get(ANCHOR))
+    homeTeamSelected(homeTeamList.get(ANCHOR))
+
+def checkHomeTeam(e):
+
+    typed = homeTeamSearchBox.get()
+    data = homeTeamValues
+
+    if typed == "":
+        data = homeTeamValues
+    else:
+        data = []
+        for item in homeTeamValues:
+            if typed.lower() in item.lower():
+                data.append(item)
+    updateHomeListBox(data)
+
+def updateAwayListBox(awayTeamValues):
+
+    awayTeamList.delete(0, END)
+
+    for item in awayTeamValues:
+        awayTeamList.insert(END, item)
+
+def fillOutAwayTeamList(e):
+
+    awayTeamSearchBox.delete(0, END)
+    awayTeamSearchBox.insert(0, awayTeamList.get(ANCHOR))
+    awayTeamSelected(awayTeamList.get(ANCHOR))
+
+def checkAwayTeam(e):
+
+    typed = awayTeamSearchBox.get()
+    data = awayTeamValues
+
+    if typed == "":
+        data = awayTeamValues
+    else:
+        data = []
+        for item in awayTeamValues:
+            if typed.lower() in item.lower():
+                data.append(item)
+    updateAwayListBox(data)
+
+def updateHomeGoalieListBox(homeGoalieValues):
+
+    homeGoalieList.delete(0, END)
+
+    for item in homeGoalieValues:
+        homeGoalieList.insert(END, item)
+
+def fillOutHomeGoalieList(e):
+
+    homeGoalieSearchBox.delete(0, END)
+    homeGoalieSearchBox.insert(0, homeGoalieList.get(ANCHOR))
+    homeGoalieSelected(homeGoalieList.get(ANCHOR))
+
+def checkHomeGoalie(e):
+
+    typed = homeGoalieSearchBox.get()
+    data = homeGoalieValues
+
+    if typed == "":
+        data = homeGoalieValues
+    else:
+        data = []
+        for item in homeGoalieValues:
+            if typed.lower() in item.lower():
+                data.append(item)
+    updateHomeGoalieListBox(data)
+
+def updateAwayGoalieListBox(awayGoalieValues):
+
+    awayGoalieList.delete(0, END)
+
+    for item in awayGoalieValues:
+        awayGoalieList.insert(END, item)
+
+def fillOutAwayGoalieList(e):
+
+    awayGoalieSearchBox.delete(0, END)
+    awayGoalieSearchBox.insert(0, awayGoalieList.get(ANCHOR))
+    awayGoalieSelected(awayGoalieList.get(ANCHOR))
+
+def checkAwayGoalie(e):
+
+    typed = awayGoalieSearchBox.get()
+    data = awayGoalieValues
+
+    if typed == "":
+        data = awayGoalieValues
+    else:
+        data = []
+        for item in awayGoalieValues:
+            if typed.lower() in item.lower():
+                data.append(item)
+    updateAwayGoalieListBox(data)
+
 
 #web scrape links
 # homeTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
@@ -712,45 +819,66 @@ awayTeamDisplay()
 homeTeamLabel = ttk.Label(selectionFrame, text = 'Select Home Team')
 homeTeamLabel.grid(row = 0, column = 0, padx = 5, pady = 10)
 
-#home team combobox
+#home team searchbox
 homeTeamValues = list(homeTeamStats['Team'].unique())
-homeTeamCombo = ttk.Combobox(selectionFrame, value = homeTeamValues)
-homeTeamCombo.grid(row = 1, column = 0)
-homeTeamCombo.bind("<<ComboboxSelected>>", homeTeamSelected)
+homeTeamSearchBox = Entry(selectionFrame, text = "Search")
+homeTeamSearchBox.grid(row = 1, column = 0)
+homeTeamList = Listbox(selectionFrame)
+homeTeamList.grid(row = 2, column = 0)
+updateHomeListBox(homeTeamValues)
+homeTeamList.bind("<<ListboxSelect>>", fillOutHomeTeamList)
+homeTeamSearchBox.bind("<KeyRelease>", checkHomeTeam)
 
+#away team selection label
 awayTeamLabel = ttk.Label(selectionFrame, text = 'Select Away Team')
 awayTeamLabel.grid(row = 0, column = 1, padx = 5, pady = 10)
 
+#away team searchbox
 awayTeamValues = list(awayTeamStats['Team'].unique())
-awayTeamCombo = ttk.Combobox(selectionFrame, value = awayTeamValues)
-awayTeamCombo.grid(row = 1, column = 1)
-awayTeamCombo.bind("<<ComboboxSelected>>", awayTeamSelected)
+awayTeamSearchBox = Entry(selectionFrame)
+awayTeamSearchBox.grid(row = 1, column = 1)
+awayTeamList = Listbox(selectionFrame)
+awayTeamList.grid(row = 2, column = 1)
+updateAwayListBox(awayTeamValues)
+awayTeamList.bind("<<ListboxSelect>>", fillOutAwayTeamList)
+awayTeamSearchBox.bind("<KeyRelease>", checkAwayTeam)
 
 
 #home goalie selection label
 homeGoalieLabel = ttk.Label(selectionFrame, text = 'Select Home Goalie')
-homeGoalieLabel.grid(row = 2, column = 0, padx = 5, pady = 10)
+homeGoalieLabel.grid(row = 3, column = 0, padx = 5, pady = 10)
 
 #home goalie combobox
 homeGoalieValues = list(homeGoalieStats['Player'].unique())
-homeGoalieCombo = ttk.Combobox(selectionFrame, value = homeGoalieValues)
-homeGoalieCombo.grid(row = 3, column = 0)
-homeGoalieCombo.bind("<<ComboboxSelected>>", homeGoalieSelected)
+homeGoalieSearchBox = Entry(selectionFrame)
+homeGoalieSearchBox.grid(row = 4, column = 0)
+homeGoalieList = Listbox(selectionFrame)
+homeGoalieList.grid(row = 5, column = 0)
+updateHomeGoalieListBox(homeGoalieValues)
+homeGoalieList.bind("<<ListboxSelect>>", fillOutHomeGoalieList)
+homeGoalieSearchBox.bind("<KeyRelease>", checkHomeGoalie)
 
 
 #away goalie selection label
 awayGoalieLabel = ttk.Label(selectionFrame, text = 'Select Away Goalie')
-awayGoalieLabel.grid(row = 2, column = 1, padx = 5, pady = 10)
+awayGoalieLabel.grid(row = 3, column = 1, padx = 5, pady = 10)
 
 #away goalie combobox
 awayGoalieValues = list(awayGoalieStats['Player'].unique())
-awayGoalieCombo = ttk.Combobox(selectionFrame, value = awayGoalieValues)
-awayGoalieCombo.grid(row = 3, column = 1)
-awayGoalieCombo.bind("<<ComboboxSelected>>", awayGoalieSelected)
+awayGoalieSearchBox = Entry(selectionFrame)
+awayGoalieSearchBox.grid(row = 4, column = 1)
+awayGoalieList = Listbox(selectionFrame)
+awayGoalieList.grid(row = 5, column = 1)
+updateAwayGoalieListBox(awayGoalieValues)
+awayGoalieList.bind("<<ListboxSelect>>", fillOutAwayGoalieList)
+awayGoalieSearchBox.bind("<KeyRelease>", checkAwayGoalie)
+# awayGoalieCombo = ttk.Combobox(selectionFrame, value = awayGoalieValues)
+# awayGoalieCombo.grid(row = 4, column = 1)
+# awayGoalieCombo.bind("<<ComboboxSelected>>", awayGoalieSelected)
 
 
 button = ttk.Button(myFrame, text = 'Run', command=lambda : computeStats())
-button.pack()
+button.pack(pady = 10)
 
 
 #GUI mainloop
