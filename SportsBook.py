@@ -18,7 +18,7 @@ def webScrapeTeamStatsUrl(StatUrl):
     for df in dfs:
         df_subset = DataFrame(df, columns = ['Team', 'GP', 'W', 'L', 'OTL','Points', 'SF', 'SF/GP', 'SA', 'SA/GP', 'GF', 'GF/GP', 'GF/GP_Rank',
                                              'xGF', 'xGF_Rank', 'xGA', 'xGA_Rank', 'GA', 'GA/GP', 'GA/GP_Rank', 'CompareGF', 'OffensiveRank',
-                                             'CompareGA', 'DefensiveRank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank', 'SCA', 'SCGA', 'SCD', 'SCD_Rank'])
+                                             'CompareGA', 'DefensiveRank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank', 'SCA', 'SCGA', 'SCD', 'SCD_Rank', 'PDO'])
 
     for idx, row in df_subset.iterrows():
         df_subset.loc[idx, 'GF/GP'] = row['GF'] / row['GP']
@@ -58,10 +58,23 @@ def webScrapeGoalieStatsUrl(StatUrl):
     dfs = pd.read_html(StatUrl)
 
     for df in dfs:
-        df_subset = DataFrame(df, columns = ['Player', 'Team', 'GP', 'Shots Against', 'Saves', 'Goals Against', 'SV%', 'SV% Rank', 'GAA', 'GAA Rank'])
+        df_subset = DataFrame(df, columns = ['Player', 'Team', 'GP', 'Shots Against', 'Saves', 'Goals Against', 'SV%', 'GAA', 'GSAA', 'xG Against',
+                                             'xGA/GP', 'HDGSAA', 'SV% Rank', 'GAA Rank', 'GSAA Rank', 'xGA Rank', 'HDGSAA Rank', 'Goalie Avg', 'Goalie Rank'])
+
+    for idx, row in df_subset.iterrows():
+        df_subset.loc[idx, 'xGA/GP'] = row['xG Against'] / row['GP']
 
     df_subset['SV% Rank'] = df_subset['SV%'].rank(ascending=False)
     df_subset['GAA Rank'] = df_subset['GAA'].rank()
+    df_subset['GSAA Rank'] = df_subset['GSAA'].rank(ascending=False)
+    df_subset['xGA Rank'] = df_subset['xGA/GP'].rank()
+    df_subset['HDGSAA Rank'] = df_subset['HDGSAA'].rank(ascending=False)
+
+    for idx, row in df_subset.iterrows():
+        df_subset['Goalie Avg'] = ((df_subset['SV% Rank'] + df_subset['GAA Rank'] + df_subset['GSAA Rank'] + df_subset['xGA Rank'] + df_subset['HDGSAA Rank']) / 5)
+
+    df_subset['Goalie Rank'] = df_subset['Goalie Avg'].rank()
+    df_subset['Goalie Rank'] = df_subset['Goalie Rank'].map('{:,.0f}'.format)
 
     return df_subset
 
@@ -126,7 +139,6 @@ def webScrapeStreakStatsUrl(StatUrl):
 def homeTeamSelected(homeTeam):
 
     global parsedHomeStats
-    #homeTeam = homeTeamCombo.get()
     homeFilter = homeTeamStats['Team'] == homeTeam
     parsedHomeStats = homeTeamStats[homeFilter]
 
@@ -183,17 +195,14 @@ def homeGoalieDisplay():
     gaaLabelHome = Label(goalieStatsFrame, text = "GAA")
     gaaLabelHome.grid(row = 1, column = 0, padx = 10, pady = 10)
 
-    #home goalie GAA Rank
-    gaaRankLabelHome = Label(goalieStatsFrame, text = 'GAA Rank')
-    gaaRankLabelHome.grid(row = 2, column = 0, padx = 10, pady = 10)
-
     #home goalie SV%
     svLabelHome = Label(goalieStatsFrame, text = "SV%")
-    svLabelHome.grid(row = 3, column = 0, padx = 10, pady = 10)
+    svLabelHome.grid(row = 2, column = 0, padx = 10, pady = 10)
 
-    #home goalie SV% Rank
-    svRankLabelHome = Label(goalieStatsFrame, text = 'SV% Rank')
-    svRankLabelHome.grid(row = 4, column = 0, padx = 10, pady = 10)
+    #home goalie rank
+    rankLabelHome = Label(goalieStatsFrame, text = "Rank")
+    rankLabelHome.grid(row = 3, column = 0, padx = 10, pady = 10)
+
 
 def awayGoalieDisplay():
 
@@ -205,17 +214,14 @@ def awayGoalieDisplay():
     gaaLabelaway = Label(goalieStatsFrame, text = "GAA")
     gaaLabelaway.grid(row = 1, column = 2, padx = 10, pady = 10)
 
-    #away goalie GAA Rank
-    gaaRankLabelAway = Label(goalieStatsFrame, text = 'GAA Rank')
-    gaaRankLabelAway.grid(row = 2, column = 2, padx = 10, pady = 10)
-
     #away goalie SV%
     svLabelAway = Label(goalieStatsFrame, text = "SV%")
+    svLabelAway.grid(row = 2, column = 2, padx = 10, pady = 10)
+
+    #away goalie rank
+    svLabelAway = Label(goalieStatsFrame, text = "Rank")
     svLabelAway.grid(row = 3, column = 2, padx = 10, pady = 10)
 
-    #away goalie SV% Rank
-    svRankLabelAway = Label(goalieStatsFrame, text = 'SV% Rank')
-    svRankLabelAway.grid(row = 4, column = 2, padx = 10, pady = 10)
 
 def homeTeamDisplay():
 
@@ -239,45 +245,33 @@ def homeTeamDisplay():
     gagpLabelhome = Label(teamStatsFrame, text = "GA/GP")
     gagpLabelhome.grid(row = 4, column = 0, padx = 10, pady = 10)
 
-    # #home team offensive strength
-    # osLabelhome = Label(teamStatsFrame, text = "Offsensive Strength")
-    # osLabelhome.grid(row = 5, column = 0, padx = 10, pady = 10)
+    #home team PDO
+    osLabelhome = Label(teamStatsFrame, text = "PDO")
+    osLabelhome.grid(row = 5, column = 0, padx = 10, pady = 10)
 
     #home team offensive rank
     orLabelhome = Label(teamStatsFrame, text = "Offsensive Rank")
-    orLabelhome.grid(row = 5, column = 0, padx = 10, pady = 10)
-
-    # #home team defensive strength
-    # dsLabelhome = Label(teamStatsFrame, text = "Defensive Strength")
-    # dsLabelhome.grid(row = 7, column = 0, padx = 10, pady = 10)
+    orLabelhome.grid(row = 6, column = 0, padx = 10, pady = 10)
 
     #home team defensive rank
     drLabelhome = Label(teamStatsFrame, text = "Defensive Rank")
-    drLabelhome.grid(row = 6, column = 0, padx = 10, pady = 10)
-
-    # #home team powerplay strength
-    # ppsLabelhome = Label(teamStatsFrame, text = "Powerplay Strength")
-    # ppsLabelhome.grid(row = 9, column = 0, padx = 10, pady = 10)
+    drLabelhome.grid(row = 7, column = 0, padx = 10, pady = 10)
 
     #home team powerplay ranking
     pprLabelhome = Label(teamStatsFrame, text = "Powerplay Ranking")
-    pprLabelhome.grid(row = 7, column = 0, padx = 10, pady = 10)
-
-    # #home team pentaly kill strength
-    # pksLabelhome = Label(teamStatsFrame, text = "Penalty Kill Strength")
-    # pksLabelhome.grid(row = 11, column = 0, padx = 10, pady = 10)
+    pprLabelhome.grid(row = 8, column = 0, padx = 10, pady = 10)
 
     #home team pentaly kill ranking
     pkrLabelhome = Label(teamStatsFrame, text = "Penalty Kill Ranking")
-    pkrLabelhome.grid(row = 8, column = 0, padx = 10, pady = 10)
+    pkrLabelhome.grid(row = 9, column = 0, padx = 10, pady = 10)
 
     #home team win streak
     wsLabelhome = Label(teamStatsFrame, text = "Win Streak")
-    wsLabelhome.grid(row = 9, column = 0, padx = 10, pady = 10)
+    wsLabelhome.grid(row = 10, column = 0, padx = 10, pady = 10)
 
     #home team loss streak
     lsLabelhome = Label(teamStatsFrame, text = "Loss Streak")
-    lsLabelhome.grid(row = 10, column = 0, padx = 10, pady = 10)
+    lsLabelhome.grid(row = 11, column = 0, padx = 10, pady = 10)
 
 def awayTeamDisplay():
 
@@ -301,92 +295,76 @@ def awayTeamDisplay():
     gagpLabelAway = Label(teamStatsFrame, text = "GA/GP")
     gagpLabelAway.grid(row = 4, column = 3, padx = 10, pady = 10)
 
-    # #away team offensive strength
-    # osLabelAway = Label(teamStatsFrame, text = "Offsensive Strength")
-    # osLabelAway.grid(row = 5, column = 3, padx = 10, pady = 10)
+    #away team PDO
+    osLabelAway = Label(teamStatsFrame, text = "PDO")
+    osLabelAway.grid(row = 5, column = 3, padx = 10, pady = 10)
 
     #away team offensive rank
     orLabelAway = Label(teamStatsFrame, text = "Offsensive Rank")
-    orLabelAway.grid(row = 5, column = 3, padx = 10, pady = 10)
-
-    # #away team defensive strength
-    # dsLabelAway = Label(teamStatsFrame, text = "Defensive Strength")
-    # dsLabelAway.grid(row = 7, column = 3, padx = 10, pady = 10)
+    orLabelAway.grid(row = 6, column = 3, padx = 10, pady = 10)
 
     #away team defensive rank
     drLabelAway = Label(teamStatsFrame, text = "Defensive Rank")
-    drLabelAway.grid(row = 6, column = 3, padx = 10, pady = 10)
-
-    # #away team powerplay strength
-    # ppsLabelAway = Label(teamStatsFrame, text = "Powerplay Strength")
-    # ppsLabelAway.grid(row = 9, column = 3, padx = 10, pady = 10)
+    drLabelAway.grid(row = 7, column = 3, padx = 10, pady = 10)
 
     #away team powerplay ranking
     pprLabelAway = Label(teamStatsFrame, text = "Powerplay Ranking")
-    pprLabelAway.grid(row = 7, column = 3, padx = 10, pady = 10)
-
-    # #away team pentaly kill strength
-    # pksLabelAway = Label(teamStatsFrame, text = "Penalty Kill Strength")
-    # pksLabelAway.grid(row = 11, column = 3, padx = 10, pady = 10)
+    pprLabelAway.grid(row = 8, column = 3, padx = 10, pady = 10)
 
     #away team pentaly kill ranking
     pkrLabelAway = Label(teamStatsFrame, text = "Penalty Kill Ranking")
-    pkrLabelAway.grid(row = 8, column = 3, padx = 10, pady = 10)
+    pkrLabelAway.grid(row = 9, column = 3, padx = 10, pady = 10)
 
     #away team win streak
     wsLabelAway = Label(teamStatsFrame, text = "Win Streak")
-    wsLabelAway.grid(row = 9, column = 3, padx = 10, pady = 10)
+    wsLabelAway.grid(row = 10, column = 3, padx = 10, pady = 10)
 
     #away team loss streak
     lsLabelAway = Label(teamStatsFrame, text = "Loss Streak")
-    lsLabelAway.grid(row = 10, column = 3, padx = 10, pady = 10)
-
+    lsLabelAway.grid(row = 11, column = 3, padx = 10, pady = 10)
 
 def populateHomeGoalieStats():
 
     homeGp = IntVar()
     homeGaa = IntVar()
-    homeGaaRank = IntVar()
     homeSV = IntVar()
-    homeSvRank = IntVar()
+    homeRank = IntVar()
+
     homeGp.set(parsedHomeGoalieStats.iloc[0]['GP'])
     homeGaa.set(parsedHomeGoalieStats.iloc[0]['GAA'])
-    homeGaaRank.set(parsedHomeGoalieStats.iloc[0]['GAA Rank'])
     homeSV.set(parsedHomeGoalieStats.iloc[0]['SV%'])
-    homeSvRank.set(parsedHomeGoalieStats.iloc[0]['SV% Rank'])
+    homeRank.set(parsedHomeGoalieStats.iloc[0]['Goalie Rank'])
+
     gpHome = Label(goalieStatsFrame, textvariable = homeGp)
     gpHome.grid(row = 0, column = 1, padx = 10, pady = 10)
     gaaHome = Label(goalieStatsFrame, textvariable = homeGaa)
     gaaHome.grid(row = 1, column = 1, padx = 10, pady = 10)
-    gaaRankHome = Label(goalieStatsFrame, textvariable = homeGaaRank)
-    gaaRankHome.grid(row = 2, column = 1, padx = 10, pady = 10)
     svHome = Label(goalieStatsFrame, textvariable = homeSV)
-    svHome.grid(row = 3, column = 1, padx = 10, pady = 10)
-    svRankHome = Label(goalieStatsFrame, textvariable = homeSvRank)
-    svRankHome.grid(row = 4, column = 1, padx = 10, pady = 10)
+    svHome.grid(row = 2, column = 1, padx = 10, pady = 10)
+    rankHome = Label(goalieStatsFrame, textvariable = homeRank)
+    rankHome.grid(row = 3, column = 1, padx = 10, pady = 10)
 
 def populateAwayGoalieStats():
 
     awayGp = IntVar()
     awayGaa = IntVar()
-    awayGaaRank = IntVar()
     awaySV = IntVar()
-    awaySvRank = IntVar()
+    awayRank = IntVar()
+
     awayGp.set(parsedAwayGoalieStats.iloc[0]['GP'])
     awayGaa.set(parsedAwayGoalieStats.iloc[0]['GAA'])
-    awayGaaRank.set(parsedAwayGoalieStats.iloc[0]['GAA Rank'])
     awaySV.set(parsedAwayGoalieStats.iloc[0]['SV%'])
-    awaySvRank.set(parsedAwayGoalieStats.iloc[0]['SV% Rank'])
+    awayRank.set(parsedAwayGoalieStats.iloc[0]['Goalie Rank'])
+
     gpAway = Label(goalieStatsFrame, textvariable = awayGp)
     gpAway.grid(row = 0, column = 3, padx = 10, pady = 10)
     gaaAway = Label(goalieStatsFrame, textvariable = awayGaa)
     gaaAway.grid(row = 1, column = 3, padx = 10, pady = 10)
-    gaaRankAway = Label(goalieStatsFrame, textvariable = awayGaaRank)
-    gaaRankAway.grid(row = 2, column = 3, padx = 10, pady = 10)
     svAway = Label(goalieStatsFrame, textvariable = awaySV)
-    svAway.grid(row = 3, column = 3, padx = 10, pady = 10)
-    svRankAway = Label(goalieStatsFrame, textvariable = awaySvRank)
-    svRankAway.grid(row = 4, column = 3, padx = 10, pady = 10)
+    svAway.grid(row = 2, column = 3, padx = 10, pady = 10)
+    rankAway = Label(goalieStatsFrame, textvariable = awayRank)
+    rankAway.grid(row = 3, column = 3, padx = 10, pady = 10)
+
 
 
 def populateHomeTeamStats():
@@ -396,13 +374,10 @@ def populateHomeTeamStats():
     homeOTL = IntVar()
     homeGFGP = IntVar()
     homeGAGP = IntVar()
-    homeOS = IntVar()
+    homePDO = IntVar()
     homeOR = IntVar()
-    homeDS = IntVar()
     homeDR = IntVar()
-    homePP = IntVar()
     homePPR = IntVar()
-    homePK = IntVar()
     homePKR = IntVar()
     homeStreakWins = IntVar()
     homeStreakLosses = IntVar()
@@ -412,6 +387,7 @@ def populateHomeTeamStats():
     homeOTL.set(parsedHomeStats.iloc[0]['OTL'])
     homeGFGP.set(parsedHomeStats.iloc[0]['GF/GP'])
     homeGAGP.set(parsedHomeStats.iloc[0]['GA/GP'])
+    homePDO.set(parsedHomeStats.iloc[0]['PDO'])
     homeOR.set(parsedHomeStats.iloc[0]['OffensiveRank'])
     homeDR.set(parsedHomeStats.iloc[0]['DefensiveRank'])
     homePPR.set(parsedHomePpStats.iloc[0]['PP_Rank'])
@@ -430,18 +406,20 @@ def populateHomeTeamStats():
     gfgpHome.grid(row = 3, column = 1, padx = 10, pady = 10)
     gagpHome = Label(teamStatsFrame, textvariable = homeGAGP)
     gagpHome.grid(row = 4, column = 1, padx = 10, pady = 10)
+    PdoHome = Label(teamStatsFrame, textvariable = homePDO)
+    PdoHome.grid(row = 5, column = 1, padx = 10, pady = 10)
     orHome = Label(teamStatsFrame, textvariable = homeOR)
-    orHome.grid(row = 5, column = 1, padx = 10, pady = 10)
+    orHome.grid(row = 6, column = 1, padx = 10, pady = 10)
     drHome = Label(teamStatsFrame, textvariable = homeDR)
-    drHome.grid(row = 6, column = 1, padx = 10, pady = 10)
+    drHome.grid(row = 7, column = 1, padx = 10, pady = 10)
     PprHome = Label(teamStatsFrame, textvariable = homePPR)
-    PprHome.grid(row = 7, column = 1, padx = 10, pady = 10)
+    PprHome.grid(row = 8, column = 1, padx = 10, pady = 10)
     PkrHome = Label(teamStatsFrame, textvariable = homePKR)
-    PkrHome.grid(row = 8, column = 1, padx = 10, pady = 10)
+    PkrHome.grid(row = 9, column = 1, padx = 10, pady = 10)
     winsStreakHome = Label(teamStatsFrame, textvariable = homeStreakWins)
-    winsStreakHome.grid(row = 9, column = 1, padx = 10, pady = 10)
+    winsStreakHome.grid(row = 10, column = 1, padx = 10, pady = 10)
     lossStreakHome = Label(teamStatsFrame, textvariable = homeStreakLosses)
-    lossStreakHome.grid(row = 10, column = 1, padx = 10, pady = 10)
+    lossStreakHome.grid(row = 11, column = 1, padx = 10, pady = 10)
 
 def populateAwayTeamStats():
 
@@ -450,13 +428,10 @@ def populateAwayTeamStats():
     awayOTL = IntVar()
     awayGFGP = IntVar()
     awayGAGP = IntVar()
-    awayOS = IntVar()
+    awayPDO = IntVar()
     awayOR = IntVar()
-    awayDS = IntVar()
     awayDR = IntVar()
-    awayPP = IntVar()
     awayPPR = IntVar()
-    awayPK = IntVar()
     awayPKR = IntVar()
     awayStreakWins = IntVar()
     awayStreakLosses = IntVar()
@@ -466,6 +441,7 @@ def populateAwayTeamStats():
     awayOTL.set(parsedAwayStats.iloc[0]['OTL'])
     awayGFGP.set(parsedAwayStats.iloc[0]['GF/GP'])
     awayGAGP.set(parsedAwayStats.iloc[0]['GA/GP'])
+    awayPDO.set(parsedAwayStats.iloc[0]['PDO'])
     awayOR.set(parsedAwayStats.iloc[0]['OffensiveRank'])
     awayDR.set(parsedAwayStats.iloc[0]['DefensiveRank'])
     awayPPR.set(parsedAwayPpStats.iloc[0]['PP_Rank'])
@@ -483,26 +459,27 @@ def populateAwayTeamStats():
     gfgpAway.grid(row = 3, column = 4, padx = 10, pady = 10)
     gagpAway = Label(teamStatsFrame, textvariable = awayGAGP)
     gagpAway.grid(row = 4, column = 4, padx = 10, pady = 10)
+    PdoAway = Label(teamStatsFrame, textvariable = awayPDO)
+    PdoAway.grid(row = 5, column = 4, padx = 10, pady = 10)
     orAway = Label(teamStatsFrame, textvariable = awayOR)
-    orAway.grid(row = 5, column = 4, padx = 10, pady = 10)
+    orAway.grid(row = 6, column = 4, padx = 10, pady = 10)
     drAway = Label(teamStatsFrame, textvariable = awayDR)
-    drAway.grid(row = 6, column = 4, padx = 10, pady = 10)
+    drAway.grid(row = 7, column = 4, padx = 10, pady = 10)
     PprAway = Label(teamStatsFrame, textvariable = awayPPR)
-    PprAway.grid(row = 7, column = 4, padx = 10, pady = 10)
+    PprAway.grid(row = 8, column = 4, padx = 10, pady = 10)
     PkrAway = Label(teamStatsFrame, textvariable = awayPKR)
-    PkrAway.grid(row = 8, column = 4, padx = 10, pady = 10)
+    PkrAway.grid(row = 9, column = 4, padx = 10, pady = 10)
     winsStreakAway = Label(teamStatsFrame, textvariable = awayStreakWins)
-    winsStreakAway.grid(row = 9, column = 4, padx = 10, pady = 10)
+    winsStreakAway.grid(row = 10, column = 4, padx = 10, pady = 10)
     lossStreakAway = Label(teamStatsFrame, textvariable = awayStreakLosses)
-    lossStreakAway.grid(row = 10, column = 4, padx = 10, pady = 10)
+    lossStreakAway.grid(row = 11, column = 4, padx = 10, pady = 10)
     
 def calculateStatistics():
 
     #home goalie stats
     #home goalie / 2.5 since the number of goalies is significantly higher than number of teams
     numOfHomeGoalies = len(homeGoalieStats)
-    homeGoalieGaaCalc = (((numOfHomeGoalies - parsedHomeGoalieStats.iloc[0]['GAA Rank']) * 0.10) / 2.5)
-    homeGoalieSvCalc = (((numOfHomeGoalies - parsedHomeGoalieStats.iloc[0]['SV% Rank']) * 0.10) / 2.5)
+    homeGoalieStrengthCalc = (((numOfHomeGoalies - int(parsedHomeGoalieStats.iloc[0]['Goalie Rank'])) * 0.20) / 2.5)
 
     #home strength calcs
     numOfHomeTeams = len(homeTeamStats)
@@ -514,8 +491,7 @@ def calculateStatistics():
     #away goalie stats
     #away goalie / 2.5 since the number of goalies is significantly higher than number of teams
     numAwayGoalies = len(awayGoalieStats)
-    awayGoalieGaaCalc = (((numAwayGoalies - parsedAwayGoalieStats.iloc[0]['GAA Rank']) * 0.10) / 2.5)
-    awayGoalieSvCalc = (((numAwayGoalies - parsedAwayGoalieStats.iloc[0]['SV% Rank']) * 0.10) / 2.5)
+    awayGoalieStrengthCalc = (((numOfHomeGoalies - int(parsedAwayGoalieStats.iloc[0]['Goalie Rank'])) * 0.20) / 2.5)
 
     #away offensive strength
     numOfAwayTeams = len(awayTeamStats)
@@ -524,10 +500,10 @@ def calculateStatistics():
     awayPowerPlayStrengthCalc = ((numOfAwayTeams - int(parsedAwayPpStats.iloc[0]['PP_Rank'])) * 0.15)
     awayPentalyKillStrengthCalc = ((numOfAwayTeams - int(parsedAwayPkStats.iloc[0]['PK_Rank'])) * 0.15)
 
-    #calculate totals
-    homeTotalCount = homeGoalieGaaCalc + homeGoalieSvCalc + homeOffensiveStrengthCalc + homeDefensiveStrengthCalc + homePowerPlayStrengthCalc + homePentalyKillStrengthCalc
+    #calculate percentage totals
+    homeTotalCount = homeGoalieStrengthCalc + homeOffensiveStrengthCalc + homeDefensiveStrengthCalc + homePowerPlayStrengthCalc + homePentalyKillStrengthCalc
 
-    awayTotalCount = awayGoalieGaaCalc + awayGoalieSvCalc + awayOffensiveStrengthCalc + awayDefensiveStrengthCalc + awayPowerPlayStrengthCalc + awayPentalyKillStrengthCalc
+    awayTotalCount = awayGoalieStrengthCalc + awayOffensiveStrengthCalc + awayDefensiveStrengthCalc + awayPowerPlayStrengthCalc + awayPentalyKillStrengthCalc
 
     totalCount = homeTotalCount + awayTotalCount
 
@@ -743,23 +719,23 @@ def checkAwayGoalie(e):
 
 
 #web scrape links
-# homeTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-# awayTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-# homeGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-# awayGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-# homePowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-# awayPowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-# homePenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-# awayPenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homeTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homeGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+awayGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20202021&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+homePowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayPowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+homePenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+awayPenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20202021&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
 
-homeTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-homeGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-awayGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
-homePowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayPowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
-homePenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
-awayPenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+# homeTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+# awayTeamStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+# homeGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=H&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+# awayGoalieStatsUrl = 'http://www.naturalstattrick.com/playerteams.php?fromseason=20192020&thruseason=20202021&stype=2&sit=5v5&score=all&stdoi=g&rate=n&team=ALL&pos=S&loc=A&toi=0&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+# homePowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+# awayPowerPlayStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pp&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
+# homePenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=H&gpf=410&fd=&td='
+# awayPenaltyKillStatsUrl = 'http://www.naturalstattrick.com/teamtable.php?fromseason=20192020&thruseason=20202021&stype=2&sit=pk&score=all&rate=n&team=all&loc=A&gpf=410&fd=&td='
 streakStatsUrl = 'http://www.naturalstattrick.com/teamstreaks.php'
 
 
