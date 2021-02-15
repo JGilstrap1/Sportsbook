@@ -392,8 +392,8 @@ def populateHomeTeamStats():
     homeDR.set(parsedHomeStats.iloc[0]['DefensiveRank'])
     homePPR.set(parsedHomePpStats.iloc[0]['PP_Rank'])
     homePKR.set(parsedHomePkStats.iloc[0]['PK_Rank'])
-    homeStreakWins.set(parsedHomeStreakStats.iloc[0]['Wins'])
-    homeStreakLosses.set(parsedHomeStreakStats.iloc[0]['Losses'])
+    homeStreakWins.set(parsedHomeStreakStats.iloc[0]['Home Wins'])
+    homeStreakLosses.set(parsedHomeStreakStats.iloc[0]['Home Losses'])
 
 
     winsHome = Label(teamStatsFrame, textvariable = homeWins)
@@ -446,8 +446,8 @@ def populateAwayTeamStats():
     awayDR.set(parsedAwayStats.iloc[0]['DefensiveRank'])
     awayPPR.set(parsedAwayPpStats.iloc[0]['PP_Rank'])
     awayPKR.set(parsedAwayPkStats.iloc[0]['PK_Rank'])
-    awayStreakWins.set(parsedAwayStreakStats.iloc[0]['Wins'])
-    awayStreakLosses.set(parsedAwayStreakStats.iloc[0]['Losses'])
+    awayStreakWins.set(parsedAwayStreakStats.iloc[0]['Road Wins'])
+    awayStreakLosses.set(parsedAwayStreakStats.iloc[0]['Road Losses'])
 
     winsAway = Label(teamStatsFrame, textvariable = awayWins)
     winsAway.grid(row = 0, column = 4, padx = 10, pady = 10)
