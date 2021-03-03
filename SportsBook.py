@@ -18,7 +18,8 @@ def webScrapeTeamStatsUrl(StatUrl):
     for df in dfs:
         df_subset = DataFrame(df, columns = ['Team', 'GP', 'W', 'L', 'OTL','Points', 'SF', 'SF/GP', 'SA', 'SA/GP', 'GF', 'GF/GP', 'GF/GP_Rank',
                                              'xGF', 'xGF_Rank', 'xGA', 'xGA_Rank', 'GA', 'GA/GP', 'GA/GP_Rank', 'CompareGF', 'OffensiveRank',
-                                             'CompareGA', 'DefensiveRank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank', 'SCA', 'SCGA', 'SCD', 'SCD_Rank', 'PDO'])
+                                             'CompareGA', 'DefensiveRank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank', 'SCA', 'SCGA', 'SCD', 'SCD_Rank', 'PDO',
+                                             'CF', 'CF_Rank', 'FF', 'FF_Rank', 'CA', 'CA_Rank', 'FA', 'FA_Rank'])
 
     for idx, row in df_subset.iterrows():
         df_subset.loc[idx, 'GF/GP'] = row['GF'] / row['GP']
@@ -41,9 +42,16 @@ def webScrapeTeamStatsUrl(StatUrl):
     df_subset['SCO_Rank'] = df_subset['SCO'].rank(ascending=False)
     df_subset['SCD_Rank'] = df_subset['SCD'].rank()
 
+    df_subset['CF_Rank'] = df_subset['CF'].rank(ascending=False)
+    df_subset['CA_Rank'] = df_subset['CA'].rank()
+
+    df_subset['FF_Rank'] = df_subset['FF'].rank(ascending=False)
+    df_subset['FA_Rank'] = df_subset['FA'].rank()
+
+
     for idx, row in df_subset.iterrows():
-        df_subset['OffensiveRank'] = ((df_subset['xGF_Rank'] + df_subset['GF/GP_Rank'] + df_subset['SCO_Rank']) / 3)
-        df_subset['DefensiveRank'] = ((df_subset['xGA_Rank'] + df_subset['GA/GP_Rank'] + df_subset['SCD_Rank']) / 3)
+        df_subset['OffensiveRank'] = ((df_subset['xGF_Rank'] + df_subset['GF/GP_Rank'] + df_subset['SCO_Rank'] + df_subset['CF_Rank'] + df_subset['FF_Rank']) / 5)
+        df_subset['DefensiveRank'] = ((df_subset['xGA_Rank'] + df_subset['GA/GP_Rank'] + df_subset['SCD_Rank'] + df_subset['CA_Rank'] + df_subset['FA_Rank']) / 5)
 
     df_subset['GF/GP'] = df_subset['GF/GP'].map('{:,.2f}'.format)
     df_subset['GA/GP'] = df_subset['GA/GP'].map('{:,.2f}'.format)
@@ -83,7 +91,8 @@ def webScrapePowerPlayStatsUrl(StatUrl):
     dfs = pd.read_html(StatUrl)
 
     for df in dfs:
-        df_subset = DataFrame(df, columns = ['Team', 'GF', 'PP', 'GF_Rank', 'PP_Rank', 'xGF', 'xGF_Rank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank'])
+        df_subset = DataFrame(df, columns = ['Team', 'GF', 'PP', 'GF_Rank', 'PP_Rank', 'xGF', 'xGF_Rank', 'SCF', 'SCGF', 'SCO', 'SCO_Rank',
+                                             'CF', 'CF_Rank', 'FF', 'FF_Rank'])
 
     for idx, row in df_subset.iterrows():
         df_subset.loc[idx, 'PP'] = row['GF'] / df_subset['GF'].mean()
@@ -94,9 +103,11 @@ def webScrapePowerPlayStatsUrl(StatUrl):
     df_subset['GF_Rank'] = df_subset['PP'].rank(ascending=False)
     df_subset['xGF_Rank'] = df_subset['xGF'].rank(ascending=False)
     df_subset['SCO_Rank'] = df_subset['SCO'].rank(ascending=False)
+    df_subset['CF_Rank'] = df_subset['CF'].rank(ascending=False)
+    df_subset['FF_Rank'] = df_subset['FF'].rank(ascending=False)
 
     for idx, row in df_subset.iterrows():
-        df_subset['PP_Rank'] = ((df_subset['GF_Rank'] + df_subset['xGF_Rank'] + df_subset['SCO_Rank']) / 3)
+        df_subset['PP_Rank'] = ((df_subset['GF_Rank'] + df_subset['xGF_Rank'] + df_subset['SCO_Rank'] + df_subset['CF_Rank'] + df_subset['FF_Rank']) / 5)
     
     df_subset['PP_Rank'] = df_subset['PP_Rank'].map('{:,.0f}'.format)
 
@@ -107,7 +118,8 @@ def webScrapePenaltyKillStatsUrl(StatUrl):
     dfs = pd.read_html(StatUrl)
 
     for df in dfs:
-        df_subset = DataFrame(df, columns = ['Team', 'GA', 'PK', 'GA_Rank', 'PK_Rank', 'xGA', 'xGA_Rank', 'SCA', 'SCGA', 'SCD', 'SCA_Rank'])
+        df_subset = DataFrame(df, columns = ['Team', 'GA', 'PK', 'GA_Rank', 'PK_Rank', 'xGA', 'xGA_Rank', 'SCA', 'SCGA', 'SCD', 'SCA_Rank',
+                                             'CA', 'CA_Rank', 'FA', 'FA_Rank'])
 
     for idx, row in df_subset.iterrows():
         df_subset.loc[idx, 'PK'] = row['GA'] / df_subset['GA'].mean()
@@ -118,9 +130,11 @@ def webScrapePenaltyKillStatsUrl(StatUrl):
     df_subset['GA_Rank'] = df_subset['PK'].rank()
     df_subset['xGA_Rank'] = df_subset['xGA'].rank()
     df_subset['SCA_Rank'] = df_subset['SCD'].rank()
+    df_subset['CA_Rank'] = df_subset['CA'].rank()
+    df_subset['FA_Rank'] = df_subset['FA'].rank()
 
     for idx, row in df_subset.iterrows():
-        df_subset['PK_Rank'] = ((df_subset['GA_Rank'] + df_subset['xGA_Rank'] + df_subset['SCA_Rank']) / 3)
+        df_subset['PK_Rank'] = ((df_subset['GA_Rank'] + df_subset['xGA_Rank'] + df_subset['SCA_Rank'] + df_subset['CA_Rank'] + df_subset['FA_Rank']) / 5)
     
     df_subset['PK_Rank'] = df_subset['PK_Rank'].map('{:,.0f}'.format)
 
@@ -300,7 +314,7 @@ def awayTeamDisplay():
     osLabelAway.grid(row = 5, column = 3, padx = 10, pady = 10)
 
     #away team offensive rank
-    orLabelAway = Label(teamStatsFrame, text = "Offsensive Rank")
+    orLabelAway = Label(teamStatsFrame, text = "Offensive Rank")
     orLabelAway.grid(row = 6, column = 3, padx = 10, pady = 10)
 
     #away team defensive rank
@@ -848,9 +862,6 @@ awayGoalieList.grid(row = 5, column = 1)
 updateAwayGoalieListBox(awayGoalieValues)
 awayGoalieList.bind("<<ListboxSelect>>", fillOutAwayGoalieList)
 awayGoalieSearchBox.bind("<KeyRelease>", checkAwayGoalie)
-# awayGoalieCombo = ttk.Combobox(selectionFrame, value = awayGoalieValues)
-# awayGoalieCombo.grid(row = 4, column = 1)
-# awayGoalieCombo.bind("<<ComboboxSelected>>", awayGoalieSelected)
 
 
 button = ttk.Button(myFrame, text = 'Run', command=lambda : computeStats())
